@@ -1,5 +1,5 @@
-#ifndef LAZY_UNARY_DECLS_HPP
-#define LAZY_UNARY_DECLS_HPP
+#ifndef LAZEX_UNARY_DECLS_HPP
+#define LAZEX_UNARY_DECLS_HPP
 
 #include "../rules.hpp"
 
@@ -16,7 +16,7 @@
  * @param OP       The node struct name (e.g. `Abs`, `Sqrt`).
  * @param TAG      The dispatch tag type (e.g. `ABS`, `SQRT`).
  */
-#define LAZY_DEFINE_UNARY_OP(FUNC, OP, TAG)                             \
+#define LAZEX_DEFINE_UNARY_OP(FUNC, OP, TAG)                             \
 template<typename T, typename Arg>                                              \
 struct OP : public Unary<OP<T, Arg>, T, Arg>, public CustomUnaryEvaluator<T> {                \
     using Base = Unary<OP<T, Arg>, T, Arg>;                                     \
@@ -30,7 +30,7 @@ requires (                                                                      
     requires { typename std::decay_t<U>::lazy_value_type; } &&                         \
     traits::isLazyExpr<std::decay_t<U>, typename std::decay_t<U>::lazy_value_type>                 \
 )                                                                               \
-LAZY_FORCE_INLINE auto FUNC(U&& arg) {                                               \
+LAZEX_FORCE_INLINE auto FUNC(U&& arg) {                                               \
     using T = detail::lazy_value_type<U>;                                              \
     auto arg_expr = make_expr<T>(std::forward<U>(arg));                         \
     return OP<T, std::decay_t<decltype(arg_expr)>>(std::move(arg_expr));        \
@@ -41,36 +41,36 @@ LAZY_FORCE_INLINE auto FUNC(U&& arg) {                                          
  *
  * Usage:
  * @code
- *   LAZY_SPECIALIZE_FUNCTIONS(MyType) {
+ *   LAZEX_SPECIALIZE_FUNCTIONS(MyType) {
  *       using T = MyType;
  *       using Base = UnaryEvaluator<CustomUnaryEvaluator<T>, T>;
  *       using Base::evaluate; using Base::eval_rule;
- *       LAZY_EVALUATE_FUNC(T, a, NEG, T) { out = my_neg(a); }
+ *       LAZEX_EVALUATE_FUNC(T, a, NEG, T) { out = my_neg(a); }
  *   };
  * @endcode
  *
  * @param Type The arithmetic type to specialise for.
  */
-#define LAZY_SPECIALIZE_FUNCTIONS(Type)\
+#define LAZEX_SPECIALIZE_FUNCTIONS(Type)\
 template<>\
 struct CustomUnaryEvaluator<Type> : public UnaryEvaluator<CustomUnaryEvaluator<Type>, Type>
 
 /**
  * @brief Declare an `evaluate` overload for a specific unary function and argument type.
  *
- * Generates a `static LAZY_FORCE_INLINE void evaluate(tag, T& out, Pool<T> workers, const ARG& arg)`
- * declaration inside a `LAZY_SPECIALIZE_FUNCTIONS` block.
+ * Generates a `static LAZEX_FORCE_INLINE void evaluate(tag, T& out, Pool<T> workers, const ARG& arg)`
+ * declaration inside a `LAZEX_SPECIALIZE_FUNCTIONS` block.
  *
  * @param T    The arithmetic value type.
  * @param arg  Name for the argument parameter.
  * @param tag  The operation tag type (e.g. `ABS`, `SQRT`, `NEG`).
  * @param ARG  The C++ type of the argument (typically `T`).
  */
-#define LAZY_EVALUATE_FUNC(T, arg, tag, ARG)\
-LAZY_FORCE_INLINE static void evaluate(tag, T& out, Pool<T> workers, const ARG& arg)
+#define LAZEX_EVALUATE_FUNC(T, arg, tag, ARG)\
+LAZEX_FORCE_INLINE static void evaluate(tag, T& out, Pool<T> workers, const ARG& arg)
 
 
-namespace lazy::tags{
+namespace lazex::tags{
 
 // ====================== UNARY FUNCTION TAGS ===========================
 
@@ -117,9 +117,9 @@ struct TANH : public Tag{};
 /// @brief Tag for `erf(x)`.
 struct ERF : public Tag{};
 
-} // namespace lazy::tags
+} // namespace lazex::tags
 
-namespace lazy::detail{
+namespace lazex::detail{
 
 
 
@@ -172,111 +172,111 @@ struct Erf;
 
 // Unary type getter
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::NEG, Arg>{
-    using type = lazy::detail::Neg<T, Arg>;
+struct TypeGetter<T, lazex::tags::NEG, Arg>{
+    using type = lazex::detail::Neg<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ABS, Arg>{
-    using type = lazy::detail::Abs<T, Arg>;
+struct TypeGetter<T, lazex::tags::ABS, Arg>{
+    using type = lazex::detail::Abs<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::SQRT, Arg>{
-    using type = lazy::detail::Sqrt<T, Arg>;
+struct TypeGetter<T, lazex::tags::SQRT, Arg>{
+    using type = lazex::detail::Sqrt<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::EXP, Arg>{
-    using type = lazy::detail::Exp<T, Arg>;
+struct TypeGetter<T, lazex::tags::EXP, Arg>{
+    using type = lazex::detail::Exp<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::LOG, Arg>{
-    using type = lazy::detail::Log<T, Arg>;
+struct TypeGetter<T, lazex::tags::LOG, Arg>{
+    using type = lazex::detail::Log<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::SIN, Arg>{
-    using type = lazy::detail::Sin<T, Arg>;
+struct TypeGetter<T, lazex::tags::SIN, Arg>{
+    using type = lazex::detail::Sin<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::COS, Arg>{
-    using type = lazy::detail::Cos<T, Arg>;
+struct TypeGetter<T, lazex::tags::COS, Arg>{
+    using type = lazex::detail::Cos<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::TAN, Arg>{
-    using type = lazy::detail::Tan<T, Arg>;
+struct TypeGetter<T, lazex::tags::TAN, Arg>{
+    using type = lazex::detail::Tan<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::COT, Arg>{
-    using type = lazy::detail::Cot<T, Arg>;
+struct TypeGetter<T, lazex::tags::COT, Arg>{
+    using type = lazex::detail::Cot<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::SEC, Arg>{
-    using type = lazy::detail::Sec<T, Arg>;
+struct TypeGetter<T, lazex::tags::SEC, Arg>{
+    using type = lazex::detail::Sec<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::CSC, Arg>{
-    using type = lazy::detail::Csc<T, Arg>;
+struct TypeGetter<T, lazex::tags::CSC, Arg>{
+    using type = lazex::detail::Csc<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ASIN, Arg>{
-    using type = lazy::detail::Asin<T, Arg>;
+struct TypeGetter<T, lazex::tags::ASIN, Arg>{
+    using type = lazex::detail::Asin<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ACOS, Arg>{
-    using type = lazy::detail::Acos<T, Arg>;
+struct TypeGetter<T, lazex::tags::ACOS, Arg>{
+    using type = lazex::detail::Acos<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ATAN, Arg>{
-    using type = lazy::detail::Atan<T, Arg>;
+struct TypeGetter<T, lazex::tags::ATAN, Arg>{
+    using type = lazex::detail::Atan<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ACOT, Arg>{
-    using type = lazy::detail::Acot<T, Arg>;
+struct TypeGetter<T, lazex::tags::ACOT, Arg>{
+    using type = lazex::detail::Acot<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ASEC, Arg>{
-    using type = lazy::detail::Asec<T, Arg>;
+struct TypeGetter<T, lazex::tags::ASEC, Arg>{
+    using type = lazex::detail::Asec<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ACSC, Arg>{
-    using type = lazy::detail::Acsc<T, Arg>;
+struct TypeGetter<T, lazex::tags::ACSC, Arg>{
+    using type = lazex::detail::Acsc<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::SINH, Arg>{
-    using type = lazy::detail::Sinh<T, Arg>;
+struct TypeGetter<T, lazex::tags::SINH, Arg>{
+    using type = lazex::detail::Sinh<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::COSH, Arg>{
-    using type = lazy::detail::Cosh<T, Arg>;
+struct TypeGetter<T, lazex::tags::COSH, Arg>{
+    using type = lazex::detail::Cosh<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::TANH, Arg>{
-    using type = lazy::detail::Tanh<T, Arg>;
+struct TypeGetter<T, lazex::tags::TANH, Arg>{
+    using type = lazex::detail::Tanh<T, Arg>;
 };
 
 template<typename T, typename Arg>
-struct TypeGetter<T, lazy::tags::ERF, Arg>{
-    using type = lazy::detail::Erf<T, Arg>;
+struct TypeGetter<T, lazex::tags::ERF, Arg>{
+    using type = lazex::detail::Erf<T, Arg>;
 };
 
     
-} // namespace lazy::detail
+} // namespace lazex::detail
 
-#endif // LAZY_UNARY_DECLS_HPP
+#endif // LAZEX_UNARY_DECLS_HPP

@@ -1,5 +1,5 @@
-#ifndef LAZY_CORE_DECLS_HPP
-#define LAZY_CORE_DECLS_HPP
+#ifndef LAZEX_CORE_DECLS_HPP
+#define LAZEX_CORE_DECLS_HPP
 
 
 #include "patterns/patterns.hpp"
@@ -12,16 +12,16 @@
 // ============================================================================
 
 
-#define LAZY_THIS static_cast<std::conditional_t<std::is_void_v<Derived>, \
+#define LAZEX_THIS static_cast<std::conditional_t<std::is_void_v<Derived>, \
     std::remove_reference_t<decltype(*this)>, \
-    lazy::detail::copy_const_t<std::remove_reference_t<decltype(*this)>, Derived>>*>(this)
+    lazex::detail::copy_const_t<std::remove_reference_t<decltype(*this)>, Derived>>*>(this)
 
-#define LAZY_FORCE_INLINE __attribute__((always_inline)) inline
+#define LAZEX_FORCE_INLINE __attribute__((always_inline)) inline
 
-#define LAZY_DEFINE_ALLOWED_IMPLICIT_CONVERSION(T, ...) \
+#define LAZEX_DEFINE_ALLOWED_IMPLICIT_CONVERSION(T, ...) \
 template<> \
-struct lazy::ValidTypes<T> { \
-    using type = lazy::detail::TypeList<__VA_ARGS__>; \
+struct lazex::ValidTypes<T> { \
+    using type = lazex::detail::TypeList<__VA_ARGS__>; \
 };
 
 /**
@@ -35,17 +35,17 @@ struct lazy::ValidTypes<T> { \
  *
  * @param TYPE  The underlying arithmetic type (e.g. `double`, `mpfr::mpreal`).
  */
-#define LAZY_DECLARE_NUMERIC_TYPE(TYPE) \
+#define LAZEX_DECLARE_NUMERIC_TYPE(TYPE) \
 namespace std {\
 template<>\
-class numeric_limits<lazy::detail::LazyType<TYPE>> : public numeric_limits<TYPE>{};\
+class numeric_limits<lazex::detail::LazyType<TYPE>> : public numeric_limits<TYPE>{};\
 } \
 template<typename F> \
-constexpr bool lazy::traits::lazyConvertCondition<F, TYPE> = std::is_arithmetic_v<std::decay_t<F>>;
+constexpr bool lazex::traits::lazexConvertCondition<F, TYPE> = std::is_arithmetic_v<std::decay_t<F>>;
 
 
 
-namespace lazy::detail {
+namespace lazex::detail {
 
 
 // ============================================================================
@@ -123,17 +123,17 @@ template<typename T> struct LazyType;
 
 
 template<typename T, typename R>
-LAZY_FORCE_INLINE decltype(auto) make_expr(R&& value);
+LAZEX_FORCE_INLINE decltype(auto) make_expr(R&& value);
 
 template<typename F>
-LAZY_FORCE_INLINE const auto& get_value(F&& value);
+LAZEX_FORCE_INLINE const auto& get_value(F&& value);
 
 template<typename From, typename To>
 using copy_const_t = std::conditional_t<std::is_const_v<From>, const To, To>;
 
 
 
-template<typename T, lazy::traits::isTag F, typename... Args>
+template<typename T, lazex::traits::isTag F, typename... Args>
 struct TypeGetter{
     using type = void;
 };
@@ -147,11 +147,11 @@ inline constexpr size_t required_workers = 0;
 
 
 
-} // namespace lazy::detail
+} // namespace lazex::detail
 
 
 
-namespace lazy::traits {
+namespace lazex::traits {
 
 // ============================================================================
 // Concepts
@@ -164,17 +164,17 @@ struct TypeList {};
 
 template<typename T>
 struct ValidTypes{
-    using type = lazy::traits::TypeList<>;
+    using type = lazex::traits::TypeList<>;
 };
 
 template<typename T, typename List>
 struct type_list_contains;
 
 template<typename T, typename... Ts>
-struct type_list_contains<T, lazy::traits::TypeList<Ts...>> : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
+struct type_list_contains<T, lazex::traits::TypeList<Ts...>> : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
 
 template<typename Class, typename T>
-constexpr bool lazyConvertCondition = lazy::traits::type_list_contains<std::decay_t<Class>, typename ValidTypes<T>::type>::value;
+constexpr bool lazexConvertCondition = lazex::traits::type_list_contains<std::decay_t<Class>, typename ValidTypes<T>::type>::value;
 
 //=============================================================================
 
@@ -185,7 +185,7 @@ struct NodeBaseCheck;
 
 template<typename F, typename T, typename... Branches>
 struct NodeBaseCheck<F, T, std::tuple<Branches...>> {
-    static constexpr bool value = std::is_base_of_v<lazy::detail::Node<F, T, Branches...>, F>;
+    static constexpr bool value = std::is_base_of_v<lazex::detail::Node<F, T, Branches...>, F>;
 };
 
 template<typename F>
@@ -201,10 +201,10 @@ struct HelperNodeIndentifier<F>{
 };
 
 template<typename Class, typename T>
-concept isConvertibleTo = lazyConvertCondition<Class, T>;
+concept isConvertibleTo = lazexConvertCondition<Class, T>;
 
 template<typename Derived, typename T>
-concept isLazyExpr = std::is_base_of_v<lazy::detail::ExprBase<T>, std::decay_t<Derived>>;
+concept isLazyExpr = std::is_base_of_v<lazex::detail::ExprBase<T>, std::decay_t<Derived>>;
 
 template<typename F, typename T>
 concept isValidScalar = isConvertibleTo<F, T> || std::is_same_v<std::decay_t<F>, T>;
@@ -216,19 +216,19 @@ template<typename Derived, typename T>
 concept isNode = HelperNodeIndentifier<std::decay_t<Derived>>::value;
 
 template<typename Derived, typename T>
-concept isAtom =std::is_base_of_v<lazy::detail::Atom<std::decay_t<Derived>, T>, std::decay_t<Derived>>;
+concept isAtom =std::is_base_of_v<lazex::detail::Atom<std::decay_t<Derived>, T>, std::decay_t<Derived>>;
 
 template<typename Derived, typename T>
-concept isRef = std::is_base_of_v<lazy::detail::RefType<T>, std::decay_t<Derived>>;
+concept isRef = std::is_base_of_v<lazex::detail::RefType<T>, std::decay_t<Derived>>;
 
 template<typename Derived, typename T>
-concept isLazy = std::is_base_of_v<lazy::detail::LazyType<T>, std::decay_t<Derived>>;
+concept isLazy = std::is_base_of_v<lazex::detail::LazyType<T>, std::decay_t<Derived>>;
 
 template<typename F>
 concept isAnyLazyExpr = requires { typename std::decay_t<F>::lazy_value_type; } && isLazyExpr<std::decay_t<F>, typename std::decay_t<F>::lazy_value_type>;
 
-} // namespace lazy::traits
+} // namespace lazex::traits
 
 
 
-#endif // LAZY_CORE_DECLS_HPP
+#endif // LAZEX_CORE_DECLS_HPP

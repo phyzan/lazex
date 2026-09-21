@@ -1,5 +1,5 @@
-#ifndef LAZY_CORE_HPP
-#define LAZY_CORE_HPP
+#ifndef LAZEX_CORE_HPP
+#define LAZEX_CORE_HPP
 
 #include <array>
 #include <algorithm>
@@ -8,7 +8,7 @@
 #include "core_decls.hpp"
 #include <vector>
 
-namespace lazy{
+namespace lazex{
 
 namespace detail{
 
@@ -72,7 +72,7 @@ struct Expr : public ExprBase<T> {
 // ============================================================================
 
 /**
- * @brief CRTP base for leaf nodes that hold a scalar value directly accessible via lazy::detail::get_value(atom).
+ * @brief CRTP base for leaf nodes that hold a scalar value directly accessible via lazex::detail::get_value(atom).
  */
 template<typename Derived, typename T>
 struct Atom : public Expr<Derived, T>{
@@ -83,7 +83,7 @@ struct Atom : public Expr<Derived, T>{
     static constexpr size_t MAX_DEPTH = 0;
     static constexpr size_t REQUIRED_TEMPORARIES = 0;
 
-    LAZY_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
+    LAZEX_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
         // Derived classes might override this
         return false;
     }
@@ -108,9 +108,9 @@ struct Node : public Expr<Derived, T>{
         return std::max({size_t{0}, std::tuple_element_t<I, typename Derived::branch_t>::MAX_DEPTH...});
     }(std::make_index_sequence<branch_count>{});
 
-    LAZY_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
+    LAZEX_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
         return [&]<size_t... I>(std::index_sequence<I...>){
-            return ((LAZY_THIS->template get<I>().contains_lazy_ref(ref)) || ...);
+            return ((LAZEX_THIS->template get<I>().contains_lazy_ref(ref)) || ...);
         }(std::make_index_sequence<branch_count>{});
     }
 
@@ -136,7 +136,7 @@ struct Node : public Expr<Derived, T>{
     static constexpr std::array<bool, branch_count> sorted_booleans(){
         std::array<std::size_t, branch_count> indices{};
         std::array<std::size_t, branch_count> nums = { Branches::REQUIRED_TEMPORARIES... };
-        std::array<bool, branch_count> is_node = { lazy::traits::isNode<Branches, T>... };
+        std::array<bool, branch_count> is_node = { lazex::traits::isNode<Branches, T>... };
 
         std::iota(indices.begin(), indices.end(), 0);
         std::sort(indices.begin(), indices.end(),
@@ -165,21 +165,21 @@ struct Node : public Expr<Derived, T>{
         return res;
     }(std::make_index_sequence<branch_count>{});
 
-    LAZY_FORCE_INLINE T& eval(T& out) const {
+    LAZEX_FORCE_INLINE T& eval(T& out) const {
         assert(!contains_lazy_ref(out) && "Not safe to evaluate a lazy expression into a reference that is contained in the expression tree. This is possibly caused by calling some_lazy_expression.eval(some_variable), where some_variable is part of the expression tree.");
         Pool<T> workers = reserve_workers<false>();
-        return LAZY_THIS->eval_impl(out, workers);
+        return LAZEX_THIS->eval_impl(out, workers);
     }
 
 
     // TODO Should optimize in case the evaluation is not a T, but e.g. a boolean.
-    LAZY_FORCE_INLINE T& eval_worker() const {
+    LAZEX_FORCE_INLINE T& eval_worker() const {
         Pool<T> workers = reserve_workers<true>();
         T& out = workers.consume();
-        return LAZY_THIS->eval_impl(out, workers);
+        return LAZEX_THIS->eval_impl(out, workers);
     }
 
-    LAZY_FORCE_INLINE T& eval_impl(T& out, Pool<T> workers) const {
+    LAZEX_FORCE_INLINE T& eval_impl(T& out, Pool<T> workers) const {
         return make_eval_impl(out, workers, std::make_index_sequence<branch_count>{});
     }
 
@@ -195,7 +195,7 @@ struct Node : public Expr<Derived, T>{
 
     template<typename... F>
     requires (std::is_constructible_v<F, Branches&&> && ...)
-    LAZY_FORCE_INLINE Node(F&&... f) : branches(std::forward<F>(f)...) {}
+    LAZEX_FORCE_INLINE Node(F&&... f) : branches(std::forward<F>(f)...) {}
 
 protected:
 
@@ -216,7 +216,7 @@ protected:
 private:
 
     template<size_t... I>
-    LAZY_FORCE_INLINE T& make_eval_impl(T& out, Pool<T> workers, std::index_sequence<I...>) const {
+    LAZEX_FORCE_INLINE T& make_eval_impl(T& out, Pool<T> workers, std::index_sequence<I...>) const {
         Derived::eval_rule(typename Derived::tag{}, out, workers, make_expr<T>(this->get<I>())...);
         return out;
     }
@@ -242,9 +242,9 @@ template<typename T>
 struct RefType : public Atom<RefType<T>, T>{
     using Base = Atom<RefType<T>, T>;
 
-    LAZY_FORCE_INLINE RefType(const T& v) : value(v) {}
+    LAZEX_FORCE_INLINE RefType(const T& v) : value(v) {}
 
-    LAZY_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
+    LAZEX_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
         return &ref == &value;
     }
 
@@ -273,7 +273,7 @@ struct OtherType : public Atom<OtherType<T, Type>, T>{
 
     using Base = Atom<OtherType<T, Type>, T>;
     
-    LAZY_FORCE_INLINE OtherType(const Type& v) : value(v) {}
+    LAZEX_FORCE_INLINE OtherType(const Type& v) : value(v) {}
 
     Type value;
 
@@ -303,17 +303,17 @@ struct OtherType : public Atom<OtherType<T, Type>, T>{
  * @return       An expression node of the appropriate type (see table).
  */
 template<typename T, typename R>
-LAZY_FORCE_INLINE decltype(auto) make_expr(R&& value){
+LAZEX_FORCE_INLINE decltype(auto) make_expr(R&& value){
 
-    static_assert(lazy::traits::isValidType<R, T>, "Invalid type for make_expr");
+    static_assert(lazex::traits::isValidType<R, T>, "Invalid type for make_expr");
 
-    if constexpr (lazy::traits::isLazy<R, T> && std::is_lvalue_reference_v<R>) {
+    if constexpr (lazex::traits::isLazy<R, T> && std::is_lvalue_reference_v<R>) {
         return RefType<T>(get_value(std::forward<R>(value)));
     } else if constexpr (std::is_same_v<T, std::decay_t<R>> && std::is_lvalue_reference_v<R>) {
         return RefType<T>(value);
-    } else if constexpr (lazy::traits::isLazy<R, T> || std::is_same_v<T, std::decay_t<R>>) {
+    } else if constexpr (lazex::traits::isLazy<R, T> || std::is_same_v<T, std::decay_t<R>>) {
         return LazyType<T>(std::forward<R>(value));
-    } else if constexpr (lazy::traits::isLazyExpr<std::decay_t<R>, T>) {
+    } else if constexpr (lazex::traits::isLazyExpr<std::decay_t<R>, T>) {
         return std::forward<R>(value);
     } else {
         return OtherType<T, std::decay_t<R>>(std::forward<R>(value));
@@ -322,11 +322,11 @@ LAZY_FORCE_INLINE decltype(auto) make_expr(R&& value){
 
 
 template<typename F>
-LAZY_FORCE_INLINE const auto& get_value(F&& value){
-    static_assert(::lazy::traits::isAnyLazyExpr<F>, "F must be a lazy expression");
+LAZEX_FORCE_INLINE const auto& get_value(F&& value){
+    static_assert(::lazex::traits::isAnyLazyExpr<F>, "F must be a lazy expression");
     using T = typename std::decay_t<F>::lazy_value_type;
-    static_assert(::lazy::traits::isAtom<F, T>, "F must be an Atom");
-    if constexpr (::lazy::traits::isLazy<F, T>){
+    static_assert(::lazex::traits::isAtom<F, T>, "F must be an Atom");
+    if constexpr (::lazex::traits::isLazy<F, T>){
         return static_cast<const T&>(value);
     } else {
         return value.value;
@@ -370,6 +370,6 @@ private:
 using detail::LazyType;
 using detail::required_workers;
 
-} // namespace lazy
+} // namespace lazex
 
-#endif // LAZY_IMPL_HPP
+#endif // LAZEX_CORE_HPP

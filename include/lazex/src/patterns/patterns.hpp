@@ -1,12 +1,12 @@
-#ifndef PATTERNS_HPP
-#define PATTERNS_HPP
+#ifndef LAZEX_PATTERNS_HPP
+#define LAZEX_PATTERNS_HPP
 
 /**
  * @file patterns.hpp
  * @brief Compile-time symbolic expression pattern types for the lazy evaluation library.
  *
  * This header defines a hierarchy of pure type-level "pattern" descriptors that mirror
- * the compile-time expression tree defined in lazy.hpp.  Patterns have no data members and
+ * the compile-time expression tree defined in lazex.hpp.  Patterns have no data members and
  * exist solely at the type level, enabling compile-time structural matching over
  * expression trees.
  */
@@ -22,36 +22,36 @@
  * Used as a `requires` constraint on the pattern operator overloads to ensure they
  * only fire for pattern arguments and do not shadow runtime arithmetic.
  */
-#define LAZY_PATTERN_REQUIREMENT(L, R) (traits::isAnyPattern<L> || traits::isAnyPattern<R>)
+#define LAZEX_PATTERN_REQUIREMENT(L, R) (traits::isAnyPattern<L> || traits::isAnyPattern<R>)
 
 /**
  * @brief Constraint macro for unary pattern operators: true when `Arg` is a pattern.
  */
-#define LAZY_UNARY_PATTERN_REQUIREMENT(Arg) (traits::isAnyPattern<Arg>)
+#define LAZEX_UNARY_PATTERN_REQUIREMENT(Arg) (traits::isAnyPattern<Arg>)
 
 
-#define LAZY_UNARY_PATTERN_OP(NAME) \
+#define LAZEX_UNARY_PATTERN_OP(NAME) \
 template<typename Arg> \
 struct NAME : public PatternUnaryOp<NAME<Arg>, Arg> { \
     template<typename ArgNEW> \
     using MakeNew = NAME<ArgNEW>; \
 };
 
-#define LAZY_BINARY_PATTERN_OP(NAME) \
+#define LAZEX_BINARY_PATTERN_OP(NAME) \
 template<typename L, typename R> \
 struct NAME : public PatternBinaryOp<NAME<L,R>, L, R> { \
     template<typename LNEW, typename RNEW> \
     using MakeNew = NAME<LNEW, RNEW>; \
 };
 
-#define LAZY_COMPARISON_PATTERN_OP(NAME) \
+#define LAZEX_COMPARISON_PATTERN_OP(NAME) \
 template<typename L, typename R> \
 struct NAME : public ComparisonPattern<NAME<L, R>, L, R> { \
     template<typename LNEW, typename RNEW> \
     using MakeNew = NAME<LNEW, RNEW>; \
 };
 
-namespace lazy::patterns {
+namespace lazex::patterns {
 // ======================== Pattern base ========================
 
 /**
@@ -98,7 +98,7 @@ namespace traits{
  * @brief Satisfied by any type that derives from `Pattern` (after decay).
  *
  * This is the gate-keeper concept used in operator overloads.  Because pattern
- * operator overloads are constrained with `LAZY_PATTERN_REQUIREMENT(L,R)` (at least one
+ * operator overloads are constrained with `LAZEX_PATTERN_REQUIREMENT(L,R)` (at least one
  * operand satisfies `isAnyPattern`), they do not interfere with runtime arithmetic.
  */
 template<typename U>
@@ -261,48 +261,48 @@ struct ComparisonPattern : public PatternBinaryOp<Derived, L, R> {};
 // ======================== Binary operations ========================
 
 
-LAZY_BINARY_PATTERN_OP(Addition)
-LAZY_BINARY_PATTERN_OP(Subtraction)
-LAZY_BINARY_PATTERN_OP(Multiplication)
-LAZY_BINARY_PATTERN_OP(Division)
-LAZY_BINARY_PATTERN_OP(Power)
-LAZY_BINARY_PATTERN_OP(Min)
-LAZY_BINARY_PATTERN_OP(Max)
+LAZEX_BINARY_PATTERN_OP(Addition)
+LAZEX_BINARY_PATTERN_OP(Subtraction)
+LAZEX_BINARY_PATTERN_OP(Multiplication)
+LAZEX_BINARY_PATTERN_OP(Division)
+LAZEX_BINARY_PATTERN_OP(Power)
+LAZEX_BINARY_PATTERN_OP(Min)
+LAZEX_BINARY_PATTERN_OP(Max)
 
 // ======================== Unary operations ========================
 
 
-LAZY_UNARY_PATTERN_OP(Negation)
-LAZY_UNARY_PATTERN_OP(AbsoluteValue)
-LAZY_UNARY_PATTERN_OP(SquareRoot)
-LAZY_UNARY_PATTERN_OP(Exponential)
-LAZY_UNARY_PATTERN_OP(Logarithm)
-LAZY_UNARY_PATTERN_OP(Sine)
-LAZY_UNARY_PATTERN_OP(Cosine)
-LAZY_UNARY_PATTERN_OP(Tangent)
-LAZY_UNARY_PATTERN_OP(Cotangent)
-LAZY_UNARY_PATTERN_OP(Secant)
-LAZY_UNARY_PATTERN_OP(Cosecant)
-LAZY_UNARY_PATTERN_OP(ArcSine)
-LAZY_UNARY_PATTERN_OP(ArcCosine)
-LAZY_UNARY_PATTERN_OP(ArcTangent)
-LAZY_UNARY_PATTERN_OP(ArcCotangent)
-LAZY_UNARY_PATTERN_OP(ArcSecant)
-LAZY_UNARY_PATTERN_OP(ArcCosecant)
-LAZY_UNARY_PATTERN_OP(HyperbolicSine)
-LAZY_UNARY_PATTERN_OP(HyperbolicCosine)
-LAZY_UNARY_PATTERN_OP(HyperbolicTangent)
-LAZY_UNARY_PATTERN_OP(ErrorFunction)
+LAZEX_UNARY_PATTERN_OP(Negation)
+LAZEX_UNARY_PATTERN_OP(AbsoluteValue)
+LAZEX_UNARY_PATTERN_OP(SquareRoot)
+LAZEX_UNARY_PATTERN_OP(Exponential)
+LAZEX_UNARY_PATTERN_OP(Logarithm)
+LAZEX_UNARY_PATTERN_OP(Sine)
+LAZEX_UNARY_PATTERN_OP(Cosine)
+LAZEX_UNARY_PATTERN_OP(Tangent)
+LAZEX_UNARY_PATTERN_OP(Cotangent)
+LAZEX_UNARY_PATTERN_OP(Secant)
+LAZEX_UNARY_PATTERN_OP(Cosecant)
+LAZEX_UNARY_PATTERN_OP(ArcSine)
+LAZEX_UNARY_PATTERN_OP(ArcCosine)
+LAZEX_UNARY_PATTERN_OP(ArcTangent)
+LAZEX_UNARY_PATTERN_OP(ArcCotangent)
+LAZEX_UNARY_PATTERN_OP(ArcSecant)
+LAZEX_UNARY_PATTERN_OP(ArcCosecant)
+LAZEX_UNARY_PATTERN_OP(HyperbolicSine)
+LAZEX_UNARY_PATTERN_OP(HyperbolicCosine)
+LAZEX_UNARY_PATTERN_OP(HyperbolicTangent)
+LAZEX_UNARY_PATTERN_OP(ErrorFunction)
 
 // ======================== Comparison operations ========================
 
-LAZY_COMPARISON_PATTERN_OP(LessThan)
-LAZY_COMPARISON_PATTERN_OP(GreaterThan)
-LAZY_COMPARISON_PATTERN_OP(Equal)
-LAZY_COMPARISON_PATTERN_OP(NotEqual)
-LAZY_COMPARISON_PATTERN_OP(LessEqual)
-LAZY_COMPARISON_PATTERN_OP(GreaterEqual)
+LAZEX_COMPARISON_PATTERN_OP(LessThan)
+LAZEX_COMPARISON_PATTERN_OP(GreaterThan)
+LAZEX_COMPARISON_PATTERN_OP(Equal)
+LAZEX_COMPARISON_PATTERN_OP(NotEqual)
+LAZEX_COMPARISON_PATTERN_OP(LessEqual)
+LAZEX_COMPARISON_PATTERN_OP(GreaterEqual)
 
-} // namespace lazy::patterns
+} // namespace lazex::patterns
 
-#endif // PATTERNS_HPP
+#endif // LAZEX_PATTERNS_HPP

@@ -1,13 +1,13 @@
-#ifndef LAZY_LAZYTYPE_HPP
-#define LAZY_LAZYTYPE_HPP
+#ifndef LAZEX_LAZYTYPE_HPP
+#define LAZEX_LAZYTYPE_HPP
 
 
 #include "binary_ops/binop_decls.hpp"
 
 
-#define LAZY_REF static_cast<lazy::detail::copy_const_t<std::remove_reference_t<decltype(*this)>, T>*>(this)
+#define LAZEX_REF static_cast<lazex::detail::copy_const_t<std::remove_reference_t<decltype(*this)>, T>*>(this)
 
-namespace lazy::detail{
+namespace lazex::detail{
 
 /**
  * @brief Owning lazy variable — the primary user-facing storage type.
@@ -46,18 +46,18 @@ struct LazyType : public detail::Atom<LazyType<T>, T>, public T{
     LazyType(T&& value) noexcept : T(std::move(value)) {}
 
     // Construct from lazy expressions
-    template<::lazy::traits::isAtom<T> U>
-    requires (!::lazy::traits::isLazy<U, T>)
+    template<::lazex::traits::isAtom<T> U>
+    requires (!::lazex::traits::isLazy<U, T>)
     LazyType(U&& value) : T(value.value()) {}
 
-    template<::lazy::traits::isNode<T> NodeType>
+    template<::lazex::traits::isNode<T> NodeType>
     LazyType(const NodeType& node) {
-        node.eval(*LAZY_REF);
+        node.eval(*LAZEX_REF);
     }
 
     // Assignment operators
-    template<::lazy::traits::isNode<T> NodeType>
-    LAZY_FORCE_INLINE
+    template<::lazex::traits::isNode<T> NodeType>
+    LAZEX_FORCE_INLINE
     LazyType& operator=(const NodeType& node){
         /*
         Do NOT do node.eval(value_) here, because if the node contains a reference to this LazyType,
@@ -68,69 +68,69 @@ struct LazyType : public detail::Atom<LazyType<T>, T>, public T{
         return *this;
     }
 
-    template<::lazy::traits::isAtom<T> U>
-    LAZY_FORCE_INLINE
-    LazyType& operator=(U&& other) requires (!::lazy::traits::isLazy<U, T>){
+    template<::lazex::traits::isAtom<T> U>
+    LAZEX_FORCE_INLINE
+    LazyType& operator=(U&& other) requires (!::lazex::traits::isLazy<U, T>){
         T::operator=(other.value);
         return *this;
     }
 
     template<typename U>
-    LAZY_FORCE_INLINE
-    LazyType& operator=(U&& other) requires (!::lazy::traits::isLazyExpr<U, T>){
+    LAZEX_FORCE_INLINE
+    LazyType& operator=(U&& other) requires (!::lazex::traits::isLazyExpr<U, T>){
         T::operator=(std::forward<U>(other));
         return *this;
     }
 
     // Compound assignment operators
     template<typename U>
-    LAZY_FORCE_INLINE
+    LAZEX_FORCE_INLINE
     LazyType& operator+=(U&& other){
-        if constexpr (::lazy::traits::isNode<U, T>){
-            *LAZY_REF += other.eval_worker();
-        } else if constexpr (::lazy::traits::isAtom<U, T>){
-            *LAZY_REF += get_value(other);
+        if constexpr (::lazex::traits::isNode<U, T>){
+            *LAZEX_REF += other.eval_worker();
+        } else if constexpr (::lazex::traits::isAtom<U, T>){
+            *LAZEX_REF += get_value(other);
         } else {
-            *LAZY_REF += other;
+            *LAZEX_REF += other;
         }
         return *this;
     }
 
     template<typename U>
-    LAZY_FORCE_INLINE
+    LAZEX_FORCE_INLINE
     LazyType& operator*=(U&& other){
-        if constexpr (::lazy::traits::isNode<U, T>){
-            *LAZY_REF *= other.eval_worker();
-        } else if constexpr (::lazy::traits::isAtom<U, T>){
-            *LAZY_REF *= get_value(other);
+        if constexpr (::lazex::traits::isNode<U, T>){
+            *LAZEX_REF *= other.eval_worker();
+        } else if constexpr (::lazex::traits::isAtom<U, T>){
+            *LAZEX_REF *= get_value(other);
         } else {
-            *LAZY_REF *= other;
+            *LAZEX_REF *= other;
         }
         return *this;
     }
 
     template<typename U>
-    LAZY_FORCE_INLINE
+    LAZEX_FORCE_INLINE
     LazyType& operator-=(U&& other){
-        if constexpr (::lazy::traits::isNode<U, T>){
-            *LAZY_REF -= other.eval_worker();
-        } else if constexpr (::lazy::traits::isAtom<U, T>){
-            *LAZY_REF -= get_value(other);
+        if constexpr (::lazex::traits::isNode<U, T>){
+            *LAZEX_REF -= other.eval_worker();
+        } else if constexpr (::lazex::traits::isAtom<U, T>){
+            *LAZEX_REF -= get_value(other);
         } else {
-            *LAZY_REF -= other;
+            *LAZEX_REF -= other;
         }
         return *this;
     }
 
     template<typename U>
-    LAZY_FORCE_INLINE
+    LAZEX_FORCE_INLINE
     LazyType& operator/=(U&& other){
-        if constexpr (::lazy::traits::isNode<U, T>){
-            *LAZY_REF /= other.eval_worker();
-        } else if constexpr (::lazy::traits::isAtom<U, T>){
-            *LAZY_REF /= get_value(other);
+        if constexpr (::lazex::traits::isNode<U, T>){
+            *LAZEX_REF /= other.eval_worker();
+        } else if constexpr (::lazex::traits::isAtom<U, T>){
+            *LAZEX_REF /= get_value(other);
         } else {
-            *LAZY_REF /= other;
+            *LAZEX_REF /= other;
         }
         return *this;
     }
@@ -150,9 +150,9 @@ private:
 
 };
 
-} // namespace lazy::detail
+} // namespace lazex::detail
 
 
-#undef LAZY_REF
+#undef LAZEX_REF
 
-#endif // LAZY_LAZYTYPE_HPP
+#endif // LAZEX_LAZYTYPE_HPP

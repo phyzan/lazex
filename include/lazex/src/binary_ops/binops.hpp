@@ -1,11 +1,11 @@
-#ifndef LAZY_BINOPS_HPP
-#define LAZY_BINOPS_HPP
+#ifndef LAZEX_BINOPS_HPP
+#define LAZEX_BINOPS_HPP
 
 #include "binop_decls.hpp"
 #include <utility>
 
 
-namespace lazy::detail{
+namespace lazex::detail{
 
 // ============================== Binary Operation nodes ==============================
 
@@ -28,7 +28,7 @@ struct BinaryEvaluator : NodalEvaluator<Derived, T> {
 
     using Base = NodalEvaluator<Derived, T>;
 
-    template<lazy::traits::isTag tag, typename L, typename R>
+    template<lazex::traits::isTag tag, typename L, typename R>
     inline static void evaluate(tag, T& /*out*/, Pool<T> /*workers*/, const L& /*a*/, const R& /*b*/){
         static_assert(false, "BinaryEvaluator::evaluate must be specialised for each performed operation");
     }
@@ -53,7 +53,7 @@ template<typename T, typename L, typename R>
 struct Add : public BinaryOperator<Add<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
 
     using Base = BinaryOperator<Add<T, L, R>, T, L, R>;
-    using tag = lazy::tags::PLUS;
+    using tag = lazex::tags::PLUS;
     using Base::Base;
 
 };
@@ -68,7 +68,7 @@ template<typename T, typename L, typename R>
 struct Mul : public BinaryOperator<Mul<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     
     using Base = BinaryOperator<Mul<T, L, R>, T, L, R>;
-    using tag = lazy::tags::MUL;
+    using tag = lazex::tags::MUL;
     using Base::Base;
 
 };
@@ -83,7 +83,7 @@ template<typename T, typename L, typename R>
 struct Div : public BinaryOperator<Div<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     
     using Base = BinaryOperator<Div<T, L, R>, T, L, R>;
-    using tag = lazy::tags::DIV;
+    using tag = lazex::tags::DIV;
     using Base::Base;
 
 };
@@ -97,7 +97,7 @@ struct Div : public BinaryOperator<Div<T, L, R>, T, L, R>, public CustomBinaryEv
 template<typename T, typename L, typename R>
 struct Sub : public BinaryOperator<Sub<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     using Base = BinaryOperator<Sub<T, L, R>, T, L, R>;
-    using tag = lazy::tags::MINUS;
+    using tag = lazex::tags::MINUS;
     using Base::Base;
 
 };
@@ -111,7 +111,7 @@ struct Sub : public BinaryOperator<Sub<T, L, R>, T, L, R>, public CustomBinaryEv
 template<typename T, typename L, typename R>
 struct Pow : public BinaryOperator<Pow<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     using Base = BinaryOperator<Pow<T, L, R>, T, L, R>;
-    using tag = lazy::tags::POW;
+    using tag = lazex::tags::POW;
     using Base::Base;
 
 };
@@ -130,7 +130,7 @@ template<typename T, typename L, typename R>
 struct MaxLazy : public BinaryOperator<MaxLazy<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     using Base = BinaryOperator<MaxLazy<T, L, R>, T, L, R>;
     using Base::Base;
-    using tag = lazy::tags::MAX;
+    using tag = lazex::tags::MAX;
 };
 
 /**
@@ -146,7 +146,7 @@ template<typename T, typename L, typename R>
 struct MinLazy : public BinaryOperator<MinLazy<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
     using Base = BinaryOperator<MinLazy<T, L, R>, T, L, R>;
     using Base::Base;
-    using tag = lazy::tags::MIN;
+    using tag = lazex::tags::MIN;
 
 };
 
@@ -173,7 +173,7 @@ struct MinLazy : public BinaryOperator<MinLazy<T, L, R>, T, L, R>, public Custom
  * @return     `Add<T, expr_L, expr_R>` node capturing both canonicalised operands.
  */
 template<typename T, typename L, typename R>
-LAZY_FORCE_INLINE auto make_add(L&& lhs, R&& rhs){
+LAZEX_FORCE_INLINE auto make_add(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
     return Add<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -186,7 +186,7 @@ LAZY_FORCE_INLINE auto make_add(L&& lhs, R&& rhs){
  * @tparam R   Right operand type.
  */
 template<typename T, typename L, typename R>
-LAZY_FORCE_INLINE auto make_mul(L&& lhs, R&& rhs){
+LAZEX_FORCE_INLINE auto make_mul(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
     return Mul<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -199,7 +199,7 @@ LAZY_FORCE_INLINE auto make_mul(L&& lhs, R&& rhs){
  * @tparam R   Denominator operand type.
  */
 template<typename T, typename L, typename R>
-LAZY_FORCE_INLINE auto make_div(L&& lhs, R&& rhs){
+LAZEX_FORCE_INLINE auto make_div(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
     return Div<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -212,7 +212,7 @@ LAZY_FORCE_INLINE auto make_div(L&& lhs, R&& rhs){
  * @tparam R   Right operand type.
  */
 template<typename T, typename L, typename R>
-LAZY_FORCE_INLINE auto make_sub(L&& lhs, R&& rhs){
+LAZEX_FORCE_INLINE auto make_sub(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
     return Sub<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -225,7 +225,7 @@ LAZY_FORCE_INLINE auto make_sub(L&& lhs, R&& rhs){
  * @tparam R    Exponent operand type.
  */
 template<typename T, typename L, typename R>
-LAZY_FORCE_INLINE auto make_pow(L&& lhs, R&& rhs){
+LAZEX_FORCE_INLINE auto make_pow(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
     return Pow<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -233,42 +233,42 @@ LAZY_FORCE_INLINE auto make_pow(L&& lhs, R&& rhs){
 
 //===================================== operator overloads=========================
 //
-// All arithmetic and relational operators are constrained with LAZY_REQUIREMENT so
+// All arithmetic and relational operators are constrained with LAZEX_REQUIREMENT so
 // they only fire when at least one operand is an expression node.  This avoids
 // hijacking built-in arithmetic for plain T values.
 
 /// @brief Lazy addition: returns `Add<T,L,R>` when at least one operand is an expression.
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto operator+(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto operator+(L&& lhs, R&& rhs){
     return make_add<detail::value_typeOf<L, R>>(std::forward<L>(lhs), std::forward<R>(rhs));
 }
 
 /// @brief Lazy multiplication: returns `Mul<T,L,R>` when at least one operand is an expression.
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto operator*(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto operator*(L&& lhs, R&& rhs){
     return make_mul<detail::value_typeOf<L, R>>(std::forward<L>(lhs), std::forward<R>(rhs));
 }
 
 /// @brief Lazy division: returns `Div<T,L,R>` when at least one operand is an expression.
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto operator/(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto operator/(L&& lhs, R&& rhs){
     return make_div<detail::value_typeOf<L, R>>(std::forward<L>(lhs), std::forward<R>(rhs));
 }
 
 /// @brief Lazy subtraction: returns `Sub<T,L,R>` when at least one operand is an expression.
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto operator-(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto operator-(L&& lhs, R&& rhs){
     return make_sub<detail::value_typeOf<L, R>>(std::forward<L>(lhs), std::forward<R>(rhs));
 }
 
 /// @brief Lazy exponentiation: returns `Pow<T,Base,Exp>` when at least one operand is an expression.
 template<typename Base, typename Exp>
-requires LAZY_REQUIREMENT(Base, Exp)
-LAZY_FORCE_INLINE auto pow(Base&& base, Exp&& exp){
+requires LAZEX_REQUIREMENT(Base, Exp)
+LAZEX_FORCE_INLINE auto pow(Base&& base, Exp&& exp){
     return make_pow<detail::value_typeOf<Base, Exp>>(std::forward<Base>(base), std::forward<Exp>(exp));
 }
 
@@ -280,8 +280,8 @@ LAZY_FORCE_INLINE auto pow(Base&& base, Exp&& exp){
  * during evaluation — specialise that to use e.g. `mpfr_max`.
  */
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto max(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto max(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<detail::value_typeOf<L, R>>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<detail::value_typeOf<L, R>>(std::forward<R>(rhs));
     return MaxLazy<detail::value_typeOf<L, R>, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
@@ -293,28 +293,28 @@ LAZY_FORCE_INLINE auto max(L&& lhs, R&& rhs){
  * Only participates in overload resolution when at least one argument is an expression.
  */
 template<typename L, typename R>
-requires LAZY_REQUIREMENT(L, R)
-LAZY_FORCE_INLINE auto min(L&& lhs, R&& rhs){
+requires LAZEX_REQUIREMENT(L, R)
+LAZEX_FORCE_INLINE auto min(L&& lhs, R&& rhs){
     auto lhs_expr = make_expr<detail::value_typeOf<L, R>>(std::forward<L>(lhs));
     auto rhs_expr = make_expr<detail::value_typeOf<L, R>>(std::forward<R>(rhs));
     return MinLazy<detail::value_typeOf<L, R>, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
 }
 
 
-} // namespace lazy::detail
+} // namespace lazex::detail
 
 
-namespace lazy{
+namespace lazex{
     
-using lazy::detail::operator+, 
-      lazy::detail::operator-, 
-      lazy::detail::operator*, 
-      lazy::detail::operator/, 
-      lazy::detail::pow, 
-      lazy::detail::min, 
-      lazy::detail::max;
+using lazex::detail::operator+, 
+      lazex::detail::operator-, 
+      lazex::detail::operator*, 
+      lazex::detail::operator/, 
+      lazex::detail::pow, 
+      lazex::detail::min, 
+      lazex::detail::max;
 
-} // namespace lazy::detail
+} // namespace lazex::detail
 
 
-#endif // LAZY_BINOPS_HPP
+#endif // LAZEX_BINOPS_HPP
