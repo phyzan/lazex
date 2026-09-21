@@ -92,19 +92,18 @@ int main(){
 
 ---
 
-## Installation
+## Getting **Lazex**
 
 Clone and initialize submodules (needed for MPFR support via `external/mpreal`):
 ```bash
 git submodule update --init --recursive
 ```
 
-## Macros
+## CMake Options
 
-| CMake Option | Macro | Effect |
-|--------------|-------|--------|
-| `LAZEX_MPFR_RND` | `LAZEX_MPFR_RND` | Sets the rounding mode for MPFR operations. Set it to `MPFR_RNDN` for most use cases, or do not set it at all (then the default rounding mode is called at each operation). |
-| `LAZEX_ENABLE_MPREAL` | - | Only used when building the example. Simply links against the `mpfr` and `gmp` libraries. |
+| Option | Effect |
+|--------------|-------|
+| `LAZEX_MPFR_RND` | Sets the rounding mode for MPFR operations. Set it to `MPFR_RNDN` for most use cases, or do not set it at all (then the default rounding mode is called at each operation). |
 
 **Linking via CMake:**
 ```cmake
@@ -325,7 +324,7 @@ inline void set_default_mpreal_prec(mpfr_prec_t prec){
 
 ## Notes for `LazyType<mpfr::mpreal>`
 
-Via CMake, this requires linking `lazex::mpfr` instead of `lazex` (see [Installation](#installation)), which only exists when configured with `-DLAZEX_ENABLE_MPREAL=ON`.
+Via CMake, this requires linking `lazex::mpfr` instead of `lazex` (see [Getting **Lazex**](#getting-lazex)), which only exists when configured with `-DLAZEX_ENABLE_MPREAL=ON`.
 
 The `mpfr` library provides functions for each operation (e.g. addition, multiplication, etc.) that take a rounding mode as an argument. The `LazyType<mpfr::mpreal>` specialization uses these functions, and by default, it passes `mpfr::mpreal::get_default_rnd()` in each operation. However, for most use cases, rounding to nearest is sufficient, so hardcoding `MPFR_RNDN` in all lazy operations will increase performance. In order to hardcode the rounding mode, the user can pass the macro `LAZEX_MPFR_RND` with the desired rounding mode found in mpfr.h, e.g. `-DLAZEX_MPFR_RND=MPFR_RNDN` to the compiler.
 
