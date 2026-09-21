@@ -1,10 +1,10 @@
-#ifndef LAZY_TAGS_HPP
-#define LAZY_TAGS_HPP
+#ifndef LAZEX_TAGS_HPP
+#define LAZEX_TAGS_HPP
 
 #include <type_traits>
 
 
-namespace lazy::tags{
+namespace lazex::tags{
 
 
 // ============================================================================
@@ -18,13 +18,13 @@ namespace lazy::tags{
 /// @brief Root tag base.  All operation tags inherit from this.
 struct Tag{};
 
-} // namespace lazy::tags
+} // namespace lazex::tags
 
-namespace lazy::traits{
+namespace lazex::traits{
 
 template<typename Arg>
-concept isTag = std::is_base_of_v<lazy::tags::Tag, std::decay_t<Arg>>;
+concept isTag = std::is_base_of_v<lazex::tags::Tag, std::decay_t<Arg>>;
 
-} // namespace lazy::traits
+} // namespace lazex::traits
 
-#endif // LAZY_TAGS_HPP
+#endif // LAZEX_TAGS_HPP

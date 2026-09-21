@@ -1,4 +1,4 @@
-#include <lazy/apps/mpfrLazy.hpp>
+#include <lazex/apps/lazex_mpreal.hpp>
 #include <chrono>
 
 int main(){
@@ -30,7 +30,7 @@ int main(){
     auto time_T = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
 
     // now with LazyType<T>
-    using LT = lazy::LazyType<T>;
+    using LT = lazex::LazyType<T>;
     LT res2 = 1;
     LT x2 = 5;
     LT y2 = 7.345;
@@ -48,7 +48,7 @@ int main(){
     std::cout << "Value with LazyType        :  " << res2 << std::endl;
     std::cout << "Speedup:                      " << (double(time_T) / (double)time_CT) << "x" << std::endl;
 
-    // g++ -O3 -std=c++20 -DNDEBUG -DLAZY_MPFR_RND=MPFR_RNDN -Iinclude example.cpp -o test -lmpfr -lgmp
+    // g++ -O3 -std=c++20 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude example.cpp -o test -lmpfr -lgmp
     // test with clang++
 
 }
