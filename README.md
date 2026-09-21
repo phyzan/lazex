@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ lazex
+# LazeX
 
 **A zero-overhead C++20 expression-template library for lazy arithmetic evaluation**
 
@@ -15,8 +15,10 @@
 
 ## ✨ Overview
 
-**lazex** is a header-only C++20 library that turns ordinary arithmetic expressions into
-compile-time expression trees. This allows users to write arithmetic naturally using standard math operators, while the library automatically
+**LazeX** is a header-only C++20 library that turns ordinary arithmetic expressions into
+compile-time expression trees (Lazy (X)pressions).
+
+This allows users to write arithmetic naturally using standard math operators, while the library automatically
 determines where temporary values are required for each operation. All intermediate temporaries are allocated once per thread at initialization,
 and reused for all subsequent evaluations of the same expression shape.
 This allows for avoiding unnecessary heap allocations and deallocations, that would otherwise require coding mathematical expressions using a non-portable, more verbose and less natural syntax.
