@@ -1,7 +1,7 @@
 #ifndef LAZEX_UNARY_DECLS_HPP
 #define LAZEX_UNARY_DECLS_HPP
 
-#include "../rules.hpp"
+#include "../rules.hpp" // IWYU pragma: keep
 
 /**
  * @brief Declare a new unary function node type and its overloaded free function.

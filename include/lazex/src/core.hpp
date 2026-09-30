@@ -50,7 +50,7 @@ struct ExprBase{
     };
 
     template<typename E>
-    using expr_storage_t = typename expr_storage<E>::type;
+    using expr_storage_t = expr_storage<E>::type;
 
 };
 
@@ -324,7 +324,7 @@ LAZEX_FORCE_INLINE decltype(auto) make_expr(R&& value){
 template<typename F>
 LAZEX_FORCE_INLINE const auto& get_value(F&& value){
     static_assert(::lazex::traits::isAnyLazyExpr<F>, "F must be a lazy expression");
-    using T = typename std::decay_t<F>::lazy_value_type;
+    using T = std::decay_t<F>::lazy_value_type;
     static_assert(::lazex::traits::isAtom<F, T>, "F must be an Atom");
     if constexpr (::lazex::traits::isLazy<F, T>){
         return static_cast<const T&>(value);

@@ -2,7 +2,8 @@
 #define LAZEX_LAZYTYPE_HPP
 
 
-#include "binary_ops/binop_decls.hpp"
+#include <vector>
+#include "core.hpp"
 
 
 #define LAZEX_REF static_cast<lazex::detail::copy_const_t<std::remove_reference_t<decltype(*this)>, T>*>(this)
