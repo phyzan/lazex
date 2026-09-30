@@ -2,7 +2,7 @@
 #define LAZEX_CORE_DECLS_HPP
 
 
-#include "patterns/patterns.hpp"
+#include "patterns/patterns.hpp" // IWYU pragma: keep
 #include "tags.hpp"
 #include <tuple>
 
@@ -86,12 +86,12 @@ struct value_typeTrait {
 template<typename T>
 requires (requires {typename std::decay_t<T>::lazy_value_type;})
 struct value_typeTrait<T> {
-    using Type = typename std::decay_t<T>::lazy_value_type;
+    using Type = std::decay_t<T>::lazy_value_type;
 };
 
 /// @brief Convenience alias: `lazy_value_type<E>` == `value_typeTrait<E>::Type`.
 template<typename E>
-using lazy_value_type = typename value_typeTrait<E>::Type;
+using lazy_value_type = value_typeTrait<E>::Type;
 
 
 /**

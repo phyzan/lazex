@@ -2,7 +2,7 @@
 #define LAZEX_BINOP_DECLS_HPP
 
 
-#include "../rules.hpp"
+#include "../rules.hpp" // IWYU pragma: keep
 
 /**
  * @brief Constraint: at least one of `L`, `R` is a lazy expression type. The other type may be a lazy expression or a raw value convertible to `T`.
