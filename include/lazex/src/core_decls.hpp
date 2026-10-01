@@ -2,6 +2,7 @@
 #define LAZEX_CORE_DECLS_HPP
 
 
+#include "../math.hpp" // IWYU pragma: keep
 #include "patterns/patterns.hpp" // IWYU pragma: keep
 #include "tags.hpp"
 #include <tuple>
