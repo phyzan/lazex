@@ -142,6 +142,29 @@ cmake --build build
 
 ---
 
+## Calling math functions: `LAZEX_USING_MATH`
+
+Write `LAZEX_USING_MATH;` in every namespace of yours that calls `abs()`, `sin()`, `sqrt()` …
+**unqualified**. One line per namespace, or once at global scope:
+
+```cpp
+#include <lazex/lazex.hpp>
+
+namespace myproject {
+
+LAZEX_USING_MATH;
+
+template<typename T>
+T f(const T& x){
+    // scalar or LazyType
+    return abs(x) * sqrt(x);
+}
+
+}
+```
+
+---
+
 
 # WARNING
 > Expression nodes hold **`const&` references** to their operands — they do not copy values.
