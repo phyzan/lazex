@@ -46,7 +46,6 @@ struct Atom : public Expr<Derived, T>{
 
     using Base = Expr<Derived, T>;
     using lazy_value_type = T;
-    using branch_t = std::tuple<>;
     static constexpr size_t MAX_DEPTH = 0;
     static constexpr size_t REQUIRED_TEMPORARIES = 0;
 
