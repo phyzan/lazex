@@ -31,10 +31,7 @@ struct ExprBase{
 
 template<typename Derived, typename T>
 struct Expr : public ExprBase<T> {
-
     using Base = ExprBase<T>;
-    using lazy_value_type = T;
-
 };
 
 // ============================================================================
