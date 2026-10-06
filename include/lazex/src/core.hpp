@@ -16,41 +16,11 @@ namespace detail{
 // ExprBase — root of the expression hierarchy
 // ============================================================================
 
-/**
- * @brief Non-CRTP root base for all expression types parameterised on value type `T`.
- *
- * Deriving from `ExprBase<T>` opts a type into the `isLazyExpr<D,T>` concept and provides
- * service types used throughout the library:
- *
- * - `lazy_value_type` — the underlying arithmetic type (carries `T` into derived classes via
- *   the nested alias).
- * - `expr_storage_t<E>` — determines how sub-expressions are stored inside composite
- *   nodes: raw `T` values are stored as `const T&` (reference to an existing object),
- *   while sub-expression nodes are stored by value (so the entire tree is embedded
- *   inline without heap allocation).
- *   concrete types override this with a more specific pattern.
- *
- * @tparam T  The underlying arithmetic value type (e.g. `double`, `mpfr::mpreal`).
- */
+
 template<typename T>
 struct ExprBase{
 
     using lazy_value_type = T;
-
-    template<typename E>
-    struct expr_storage {
-        // Default: store by const reference
-        using type = const T&;
-    };
-
-    template<traits::isLazyExpr<T> E>
-    struct expr_storage<E> {
-        // For sub-expressions: store by value
-        using type = std::decay_t<E>;
-    };
-
-    template<typename E>
-    using expr_storage_t = expr_storage<E>::type;
 
 };
 
@@ -248,7 +218,7 @@ struct RefType : public Atom<RefType<T>, T>{
         return &ref == &value;
     }
 
-    Base::template expr_storage_t<T> value;
+    const T& value;
 
 };
 
