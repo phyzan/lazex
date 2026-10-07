@@ -55,11 +55,20 @@ struct Comparison : public BinaryOperator<Derived, T, L, R>, public BooleanEvalu
     operator bool() const{
         Pool<T> workers = this->reserve_workers();
         if constexpr (lazex::traits::isNode<L, T> && lazex::traits::isNode<R, T>) {
-            T& left_out = workers.consume();
-            T& left = this->template get<0>().eval_impl(left_out, workers);
-            T& right_out = workers.consume();
-            T& right = this->template get<1>().eval_impl(right_out, workers);
-            return this->get_bool(typename Derived::tag{}, left, right);
+            // Evaluate the more demanding branch first
+            if constexpr (R::REQUIRED_TEMPORARIES > L::REQUIRED_TEMPORARIES) {
+                T& right_out = workers.consume();
+                T& right = this->template get<1>().eval_impl(right_out, workers);
+                T& left_out = workers.consume();
+                T& left = this->template get<0>().eval_impl(left_out, workers);
+                return this->get_bool(typename Derived::tag{}, left, right);
+            } else {
+                T& left_out = workers.consume();
+                T& left = this->template get<0>().eval_impl(left_out, workers);
+                T& right_out = workers.consume();
+                T& right = this->template get<1>().eval_impl(right_out, workers);
+                return this->get_bool(typename Derived::tag{}, left, right);
+            }
         } else if constexpr (lazex::traits::isNode<L, T>) {
             T& out = workers.consume();
             T& left = this->template get<0>().eval_impl(out, workers);

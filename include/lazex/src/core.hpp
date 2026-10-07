@@ -160,7 +160,7 @@ struct Node : public Expr<Derived, T>{
     }
 
     template<typename... F>
-    requires (std::is_constructible_v<F, Branches&&> && ...)
+    requires (std::is_constructible_v<Branches, F&&> && ...)
     LAZEX_FORCE_INLINE Node(F&&... f) : branches(std::forward<F>(f)...) {}
 
 protected:
