@@ -6,7 +6,7 @@
 #include "patterns/patterns.hpp" // IWYU pragma: keep
 #include "tags.hpp"
 #include <tuple>
-
+#include <vector>
 
 // ============================================================================
 // Utility macros
@@ -146,7 +146,15 @@ class Pool;
 template<typename T>
 inline constexpr size_t required_workers = 0;
 
+template<typename T>
+std::vector<T>& workers(){
+    static thread_local std::vector<T> pool(required_workers<T>);
+    return pool;
+}
 
+// Override for each desired type
+template<typename T>
+void reset_worker(T& /*worker*/){}
 
 } // namespace lazex::detail
 
@@ -231,5 +239,15 @@ concept isAnyLazyExpr = requires { typename std::decay_t<F>::lazy_value_type; } 
 } // namespace lazex::traits
 
 
+namespace lazex{
+
+template<typename T>
+inline void update_workers(){
+    for (T& worker : detail::workers<T>()){
+        detail::reset_worker(worker);
+    }
+}
+
+} // namespace lazex
 
 #endif // LAZEX_CORE_DECLS_HPP

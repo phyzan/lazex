@@ -580,6 +580,11 @@ inline bool isfinite(const LazyType<mpfr::mpreal>& x){
     return mpfr::isfinite(get_value(x));
 }
 
+template<>
+inline void reset_worker(mpfr::mpreal& worker){
+    worker.set_prec(mpfr::mpreal::get_default_prec());
+}
+
 
 }; // namespace lazex::detail
 
@@ -591,20 +596,11 @@ using lazex::detail::isfinite;
 
 /**
  * @brief Set the global default MPFR precision and resize all scratch buffers.
- *
- * Changes the precision for newly created `mpfr::mpreal` objects **and** resizes
- * every `mpfr::mpreal` scratch buffer registered in `LazyType<mpfr::mpreal>::workers`
- * (i.e. all thread-local temporaries created automatically for `mpfr::mpreal`
- * expressions).  This ensures that subsequent lazy evaluations use the new precision
- * throughout.
- *
  * @param prec  The new MPFR precision in bits (e.g. 256 for quad-like precision).
  */
 inline void set_default_mpreal_prec(mpfr_prec_t prec){
     mpfr::mpreal::set_default_prec(prec);
-    lazex::LazyType<mpfr::mpreal>::for_each_worker([prec](mpfr::mpreal& key){
-        key.set_prec(prec);
-    });
+    update_workers<mpfr::mpreal>();
 }
 
 } // namespace lazex

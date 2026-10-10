@@ -12,27 +12,10 @@ namespace lazex::detail{
 
 /**
  * @brief Owning lazy variable — the primary user-facing storage type.
- *
- * `LazyType<T>` is the type users declare variables with.  It is an `Atom` so it
- * can be used directly in expressions without evaluation, and it supports:
- *
- * - Construction from raw `T`, from other atoms, and from `Node` expressions
- *   (which evaluates them immediately via `eval()`).
- * - Compound assignment (`+=`, `-=`, `*=`, `/=`) that update `value_` in place
- *   using `CustomBinaryEvaluator<T>`, correctly handling both atom and node operands
- *   without extra temporaries.
- * - Thread-safety for *reading* the scratch pointer registry via `for_each_worker`.
- *
- * **Note:** `make_expr<T>()` converts an lvalue `LazyType<T>` to `RefType<T>` so
- * that expression trees reference the original variable; an rvalue `LazyType<T>` is
- * moved into a new `LazyType<T>` node.
- *
  * @tparam T The arithmetic value type.
  */
 template<typename T>
 struct LazyType : public detail::Atom<LazyType<T>, T>, public T{
-    
-    using Base = detail::Atom<LazyType<T>, T>;
     
     // Main constructors and assignment operators
     LazyType() = default;
@@ -135,20 +118,6 @@ struct LazyType : public detail::Atom<LazyType<T>, T>, public T{
         }
         return *this;
     }
-
-    template<typename F>
-    inline static void for_each_worker(F&& fn) {
-        for (T& p : workers) {fn(p);};
-    }
-
-    inline static thread_local std::vector<T> workers{required_workers<T>};
-
-private:
-
-    template<typename A, typename B>
-    friend struct NodalEvaluator;
-
-
 };
 
 } // namespace lazex::detail

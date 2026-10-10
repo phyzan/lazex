@@ -326,25 +326,34 @@ Each thread allocates its own scratch space for temporary values, so that multip
 
 ### Updating cached workers
 
-That per-thread scratch space is allocated once and reused for every subsequent evaluation — it is **not** reconstructed on each use. If you change some global/static state that affects how `T` behaves (e.g. a global precision, locale, or rounding mode), already-allocated workers keep reflecting whatever state was in effect when they were first created, and will silently go stale unless you update them yourself, via `LazyType<T>::for_each_worker`:
-
+That per-thread scratch space is allocated once and reused for every subsequent evaluation. If you change some global/static state that affects how `T` behaves (e.g. a default precision), already-allocated workers will not be automatically updated unless
 ```cpp
-template<typename F>
-static void LazyType<T>::for_each_worker(F&& fn); // fn is called with a T& for every cached worker
+lazex::update_workers<MyType>();
+```
+is explicitly called.
+
+Define what happens to each worker by specializing `lazex::detail::reset_worker` as an inline function. Put it in a header (ideally the same one that holds your other specializations for that scalar type) so that it is visible at every `update_workers` call site:
+```cpp
+namespace lazex::detail{
+template<>
+inline void reset_worker(MyType& worker){
+   ...
+}
+}
 ```
 
-For example, `lazex::set_default_mpreal_prec` (in `lazex/apps/lazex_mpreal.hpp`) uses this to keep `mpfr::mpreal` workers consistent after changing the global default precision:
+For example, see how `reset_worker` is defined in [lazex_mpreal.hpp](include/lazex/apps/lazex_mpreal.hpp) to keep `mpfr::mpreal` workers consistent after changing the global default precision.
+
+The `set_default_mpreal_prec` defined in that same file updates both the precision and the workers:
 
 ```cpp
 inline void set_default_mpreal_prec(mpfr_prec_t prec){
     mpfr::mpreal::set_default_prec(prec);
-    lazex::LazyType<mpfr::mpreal>::for_each_worker([prec](mpfr::mpreal& key){
-        key.set_prec(prec);
-    });
+    update_workers<mpfr::mpreal>();
 }
 ```
 
-**Note:** `workers` is `thread_local`, so `for_each_worker` only updates the calling thread's own cache. In a multi-threaded program, each thread that uses `LazyType<T>` must call it independently after a relevant global change — there is no way to refresh another thread's workers from outside that thread.
+**Note:** `workers` is `thread_local`, so `update_workers` only updates the calling thread's own cache. In a multi-threaded program, each thread that uses `LazyType<T>` must call it independently after a relevant global change — there is no way to refresh another thread's workers from outside that thread.
 
 
 ## Notes for `LazyType<mpfr::mpreal>`

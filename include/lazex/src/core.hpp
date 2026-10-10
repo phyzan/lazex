@@ -6,7 +6,6 @@
 #include <numeric>
 #include <cassert>
 #include "core_decls.hpp"
-#include <vector>
 
 namespace lazex{
 
@@ -172,10 +171,10 @@ protected:
             + (reserve_output ? 1 : 0)
             + required_workers<T>;
 
-        if (required_count > LazyType<T>::workers.size()){
-            LazyType<T>::workers.resize(required_count);
+        std::vector<T>& workers = detail::workers<T>();
+        if (required_count > workers.size()){
+            workers.resize(required_count);
         }
-        std::vector<T>& workers = LazyType<T>::workers;
         return Pool<T>(workers.data(), workers.size());
     }
 
