@@ -152,9 +152,11 @@ std::vector<T>& workers(){
     return pool;
 }
 
-// Override for each desired type
+// Specialize (fully or partially) for each desired type
 template<typename T>
-void reset_worker(T& /*worker*/){}
+struct WorkerReset{
+    static void apply(T& /*worker*/){}
+};
 
 } // namespace lazex::detail
 
@@ -244,7 +246,7 @@ namespace lazex{
 template<typename T>
 inline void update_workers(){
     for (T& worker : detail::workers<T>()){
-        detail::reset_worker(worker);
+        detail::WorkerReset<T>::apply(worker);
     }
 }
 

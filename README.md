@@ -332,17 +332,31 @@ lazex::update_workers<MyType>();
 ```
 is explicitly called.
 
-Define what happens to each worker by specializing `lazex::detail::reset_worker` as an inline function. Put it in a header (ideally the same one that holds your other specializations for that scalar type) so that it is visible at every `update_workers` call site:
+Define what happens to each worker by specializing `lazex::detail::WorkerReset`. Put the specialization in a header (ideally the same one that holds your other specializations for that scalar type) so that it is visible at every `update_workers` call site:
 ```cpp
 namespace lazex::detail{
 template<>
-inline void reset_worker(MyType& worker){
-   ...
-}
+struct WorkerReset<MyType>{
+    static void apply(MyType& worker){
+        ...
+    }
+};
 }
 ```
 
-For example, see how `reset_worker` is defined in [lazex_mpreal.hpp](include/lazex/apps/lazex_mpreal.hpp) to keep `mpfr::mpreal` workers consistent after changing the global default precision.
+Because `WorkerReset` is a class template, it can also be partially specialized for a family of types:
+```cpp
+namespace lazex::detail{
+template<typename T, int N>
+struct WorkerReset<MyTemplate<T, N>>{
+    static void apply(MyTemplate<T, N>& worker){
+        ...
+    }
+};
+}
+```
+
+For example, see how `WorkerReset` is specialized in [lazex_mpreal.hpp](include/lazex/apps/lazex_mpreal.hpp) to keep `mpfr::mpreal` workers consistent after changing the global default precision.
 
 The `set_default_mpreal_prec` defined in that same file updates both the precision and the workers:
 

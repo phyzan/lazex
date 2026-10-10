@@ -581,9 +581,11 @@ inline bool isfinite(const LazyType<mpfr::mpreal>& x){
 }
 
 template<>
-inline void reset_worker(mpfr::mpreal& worker){
-    worker.set_prec(mpfr::mpreal::get_default_prec());
-}
+struct WorkerReset<mpfr::mpreal>{
+    static void apply(mpfr::mpreal& worker){
+        worker.set_prec(mpfr::mpreal::get_default_prec());
+    }
+};
 
 
 }; // namespace lazex::detail
