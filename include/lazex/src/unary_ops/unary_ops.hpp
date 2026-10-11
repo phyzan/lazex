@@ -65,6 +65,7 @@ LAZEX_DEFINE_UNARY_OP(abs, Abs, lazex::tags::ABS)
 LAZEX_DEFINE_UNARY_OP(sqrt, Sqrt, lazex::tags::SQRT)
 LAZEX_DEFINE_UNARY_OP(exp, Exp, lazex::tags::EXP)
 LAZEX_DEFINE_UNARY_OP(log, Log, lazex::tags::LOG)
+LAZEX_DEFINE_UNARY_OP(log10, Log10, lazex::tags::LOG10)
 LAZEX_DEFINE_UNARY_OP(sin, Sin, lazex::tags::SIN)
 LAZEX_DEFINE_UNARY_OP(cos, Cos, lazex::tags::COS)
 LAZEX_DEFINE_UNARY_OP(tan, Tan, lazex::tags::TAN)
@@ -109,6 +110,7 @@ using lazex::detail::abs,
       lazex::detail::sqrt,
       lazex::detail::exp,
       lazex::detail::log,
+      lazex::detail::log10,
       lazex::detail::sin,
       lazex::detail::cos,
       lazex::detail::tan,

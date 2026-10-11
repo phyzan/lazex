@@ -95,6 +95,11 @@ LAZEX_SPECIALIZE_FUNCTIONS(mpfr::mpreal){
         mpfr_log(out.mpfr_ptr(), a.mpfr_srcptr(), LAZEX_MPFR_RND);
     }
 
+    // log10
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::LOG10, T &out, Pool<T> /**/, const T &a){
+        mpfr_log10(out.mpfr_ptr(), a.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
     // sin
     LAZEX_FORCE_INLINE static void evaluate(lazex::tags::SIN, T &out, Pool<T> /**/, const T &a){
         mpfr_sin(out.mpfr_ptr(), a.mpfr_srcptr(), LAZEX_MPFR_RND);
@@ -138,6 +143,27 @@ LAZEX_SPECIALIZE_FUNCTIONS(mpfr::mpreal){
     // atan
     LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN, T &out, Pool<T> /**/, const T &a){
         mpfr_atan(out.mpfr_ptr(), a.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // acot, asec, acsc: MPFR has no inverse cot/sec/csc, so these go through 1/a, as mpreal's own
+    // acot/asec/acsc do. `out` may be `a` itself; MPFR allows that in both calls.
+
+    // acot
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ACOT, T &out, Pool<T> /**/, const T &a){
+        mpfr_ui_div(out.mpfr_ptr(), 1, a.mpfr_srcptr(), LAZEX_MPFR_RND);
+        mpfr_atan(out.mpfr_ptr(), out.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // asec
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ASEC, T &out, Pool<T> /**/, const T &a){
+        mpfr_ui_div(out.mpfr_ptr(), 1, a.mpfr_srcptr(), LAZEX_MPFR_RND);
+        mpfr_acos(out.mpfr_ptr(), out.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // acsc
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ACSC, T &out, Pool<T> /**/, const T &a){
+        mpfr_ui_div(out.mpfr_ptr(), 1, a.mpfr_srcptr(), LAZEX_MPFR_RND);
+        mpfr_asin(out.mpfr_ptr(), out.mpfr_srcptr(), LAZEX_MPFR_RND);
     }
 
     // sinh
@@ -585,6 +611,26 @@ struct WorkerReset<mpfr::mpreal>{
     static void apply(mpfr::mpreal& worker){
         worker.set_prec(mpfr::mpreal::get_default_prec());
     }
+};
+
+// mpreal: MPFR's cached pi at the current default precision
+template<>
+struct constants<mpfr::mpreal> {
+    static mpfr::mpreal pi() {
+        return mpfr::const_pi(mpfr::mpreal::get_default_prec(), LAZEX_MPFR_RND);
+    }
+
+    static mpfr::mpreal two_over_sqrtpi() {
+        return mpfr::mpreal(2) / mpfr::sqrt(pi(), LAZEX_MPFR_RND);
+    }
+};
+
+// LazyType<mpreal>: forward to mpreal
+template<>
+struct constants<lazex::LazyType<mpfr::mpreal>> {
+    using type = lazex::LazyType<mpfr::mpreal>;
+    static type pi()              { return constants<mpfr::mpreal>::pi(); }
+    static type two_over_sqrtpi() { return constants<mpfr::mpreal>::two_over_sqrtpi(); }
 };
 
 
