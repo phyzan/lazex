@@ -84,6 +84,8 @@ struct SQRT : public Tag{};
 struct EXP : public Tag{};
 /// @brief Tag for `log(x)`.
 struct LOG : public Tag{};
+/// @brief Tag for `log10(x)`.
+struct LOG10 : public Tag{};
 /// @brief Tag for `sin(x)`.
 struct SIN : public Tag{};
 /// @brief Tag for `cos(x)`.
@@ -134,6 +136,8 @@ template<typename T, typename Arg>
 struct Exp;
 template<typename T, typename Arg>
 struct Log;
+template<typename T, typename Arg>
+struct Log10;
 template<typename T, typename Arg>
 struct Sin;
 template<typename T, typename Arg>
@@ -194,6 +198,11 @@ struct TypeGetter<T, lazex::tags::EXP, Arg>{
 template<typename T, typename Arg>
 struct TypeGetter<T, lazex::tags::LOG, Arg>{
     using type = lazex::detail::Log<T, Arg>;
+};
+
+template<typename T, typename Arg>
+struct TypeGetter<T, lazex::tags::LOG10, Arg>{
+    using type = lazex::detail::Log10<T, Arg>;
 };
 
 template<typename T, typename Arg>
