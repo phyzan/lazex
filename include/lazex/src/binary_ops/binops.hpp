@@ -30,7 +30,8 @@ struct BinaryEvaluator : NodalEvaluator<Derived, T> {
 
     template<lazex::traits::isTag tag, typename L, typename R>
     inline static void evaluate(tag, T& /*out*/, Pool<T> /*workers*/, const L& /*a*/, const R& /*b*/){
-        static_assert(false, "BinaryEvaluator::evaluate must be specialised for each performed operation");
+        // Always false but only fires if the function is instantiated
+        static_assert(sizeof(L) == 0, "BinaryEvaluator::evaluate must be specialised for each performed operation");
     }
 };
 
