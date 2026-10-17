@@ -224,7 +224,7 @@ template<typename F, typename T>
 concept isValidType = isLazyExpr<F, T> || isValidScalar<F, T>;
 
 template<typename Derived, typename T>
-concept isNode = HelperNodeIndentifier<std::decay_t<Derived>>::value;
+concept isNode = HelperNodeIndentifier<std::decay_t<Derived>>::value && isLazyExpr<Derived, T>;
 
 template<typename Derived, typename T>
 concept isAtom =std::is_base_of_v<lazex::detail::Atom<std::decay_t<Derived>, T>, std::decay_t<Derived>>;
