@@ -13,7 +13,7 @@
 
 ---
 
-## ✨ Overview
+## Overview
 
 **LazeX** is a header-only C++20 library that turns ordinary arithmetic expressions into
 compile-time expression trees (Lazy (X)pressions).
@@ -96,36 +96,38 @@ int main(){
 
 ## Getting **Lazex**
 
-Clone and initialize submodules (needed for MPFR support via `external/mpreal`):
-```bash
-git submodule update --init --recursive
-```
+Lazex is header-only and has no dependencies. MPFR support (`lazex/apps/lazex_mpreal.hpp`) additionally needs MPFR, GMP and [mpreal](https://github.com/advanpix/mpreal) >= 3.7.2 (e.g. `libmpfr-dev libgmp-dev libmpfrc++-dev` on Debian/Ubuntu). When building this repository directly, a missing `mpreal.h` is downloaded automatically.
 
 ## CMake Options
 
 | Option | Effect |
 |--------------|-------|
-| `LAZEX_MPFR_RND` | Sets the rounding mode for MPFR operations. Set it to `MPFR_RNDN` for most use cases, or do not set it at all (then the default rounding mode is called at each operation). |
+| `LAZEX_MPFR_RND` | Sets the rounding mode for MPFR operations. Defaults to `MPFR_RNDN`; set it empty to call the default rounding mode at each operation instead. |
+| `LAZEX_ENABLE_MPREAL` | Defines the `lazex::mpfr` target. `ON` when building lazex itself, `OFF` as a subproject. |
+| `LAZEX_FETCH_MPREAL` | Downloads `mpreal.h` if it isn't installed. `ON` when building lazex itself, `OFF` as a subproject. |
+| `LAZEX_BUILD_EXAMPLE` | Builds `example.cpp`. `ON` when building lazex itself (requires `LAZEX_ENABLE_MPREAL`). |
 
 **Linking via CMake:**
 ```cmake
 add_subdirectory(path/to/lazex)
-target_link_libraries(your_target PRIVATE lazex)  # core lazex/lazex.hpp only
+target_link_libraries(your_target PRIVATE lazex::lazex)  # core lazex/lazex.hpp only
 ```
 This propagates the required C++20 standard and `LAZEX_MPFR_RND` (see [Notes for `LazyType<mpfr::mpreal>`](#notes-for-lazytypempfrmpreal) below) automatically.
 
-MPFR support (`lazex/apps/lazex_mpreal.hpp`) is opt-in, via the `LAZEX_ENABLE_MPREAL` option — plain `add_subdirectory` doesn't require MPFR/GMP to be installed at all, since having the `mpreal` submodule checked out doesn't guarantee they're actually available/linkable:
-```bash
-cmake -S . -B build -DLAZEX_ENABLE_MPREAL=ON -DLAZEX_MPFR_RND=MPFR_RNDN
+For consumers, MPFR support (`lazex/apps/lazex_mpreal.hpp`) is opt-in via `LAZEX_ENABLE_MPREAL`, so plain `add_subdirectory` doesn't require MPFR/GMP/mpreal at all:
+```cmake
+set(LAZEX_ENABLE_MPREAL ON)        # mpreal.h is searched for on the system (or set MPREAL_INCLUDE_DIR)
+set(LAZEX_FETCH_MPREAL ON)         # optional: download mpreal.h if it isn't found
+add_subdirectory(path/to/lazex)
 ```
 ```cmake
 target_link_libraries(your_target PRIVATE lazex::mpfr)  # adds mpreal.h + links mpfr/gmp
 ```
 `lazex::mpfr` only exists when `LAZEX_ENABLE_MPREAL` is `ON`. It only affects the build (include dir, library links) — it isn't a preprocessor macro and has no effect on the headers themselves, so you still need to `#include <lazex/apps/lazex_mpreal.hpp>` explicitly wherever you use `mpfr::mpreal`/`LazyType<mpfr::mpreal>` (it isn't pulled in automatically by `<lazex/lazex.hpp>`).
 
-**Without CMake:**
+**Without CMake** (add `-I<dir>` if `mpreal.h` isn't in a default include path):
 ```bash
-g++ -std=c++20 -O3 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude -Iexternal/mpreal test.cpp -o test -lmpfr -lgmp
+g++ -std=c++20 -O3 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude test.cpp -o test -lmpfr -lgmp
 ```
 
 **Syntax highlighting (clangd):** configure the build from this directory's own root so `compile_commands.json` ends up directly in `build/`, which clangd discovers automatically:
@@ -133,9 +135,9 @@ g++ -std=c++20 -O3 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude -Iexternal/mpre
 cmake -S . -B build
 ```
 
-**Running the example** (needs `LAZEX_ENABLE_MPREAL`, since it uses `mpfr::mpreal`):
+**Running the example:**
 ```bash
-cmake -S . -B build -DLAZEX_ENABLE_MPREAL=ON -DLAZEX_MPFR_RND=MPFR_RNDN
+cmake -S . -B build
 cmake --build build
 ./build/example
 ```
@@ -372,7 +374,7 @@ inline void set_default_mpreal_prec(mpfr_prec_t prec){
 
 ## Notes for `LazyType<mpfr::mpreal>`
 
-Via CMake, this requires linking `lazex::mpfr` instead of `lazex` (see [Getting **Lazex**](#getting-lazex)), which only exists when configured with `-DLAZEX_ENABLE_MPREAL=ON`.
+Via CMake, this requires linking `lazex::mpfr` instead of `lazex::lazex` (see [Getting **Lazex**](#getting-lazex)), which only exists when `LAZEX_ENABLE_MPREAL` is `ON` (the default when building lazex itself; set it explicitly when lazex is a subproject).
 
 The `mpfr` library provides functions for each operation (e.g. addition, multiplication, etc.) that take a rounding mode as an argument. The `LazyType<mpfr::mpreal>` specialization uses these functions, and by default, it passes `mpfr::mpreal::get_default_rnd()` in each operation. However, for most use cases, rounding to nearest is sufficient, so hardcoding `MPFR_RNDN` in all lazy operations will increase performance. In order to hardcode the rounding mode, the user can pass the macro `LAZEX_MPFR_RND` with the desired rounding mode found in mpfr.h, e.g. `-DLAZEX_MPFR_RND=MPFR_RNDN` to the compiler.
 
