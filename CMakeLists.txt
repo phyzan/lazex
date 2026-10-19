@@ -1,89 +1,65 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 
-project(lazex)
+project(lazex LANGUAGES CXX)
 
-add_library(lazex INTERFACE)
-
-target_compile_features(lazex INTERFACE cxx_std_20)
-
-target_include_directories(lazex
-    INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-set(LAZEX_MPFR_RND "MPFR_RNDN" CACHE STRING
-    "Rounding mode passed as LAZEX_MPFR_RND to consumers of the lazex target (see include/lazex/apps/lazex_mpreal.hpp). Leave empty to fall back to mpfr::mpreal::get_default_rnd() at runtime.")
-
-if(LAZEX_MPFR_RND)
-    target_compile_definitions(lazex
-        INTERFACE
-            LAZEX_MPFR_RND=${LAZEX_MPFR_RND}
-    )
+if(PROJECT_IS_TOP_LEVEL)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)  # build/compile_commands.json, picked up by clangd
+    if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+        set(CMAKE_BUILD_TYPE Release)
+    endif()
 endif()
 
-# ----------- Optional MPFR support (lazex/apps/lazex_mpreal.hpp) ---------------
-# Kept separate from the core `lazex` target since most consumers never touch
-# MPFR: link against `lazex::mpfr` instead of `lazex` to opt in to mpreal's
-# include dir plus the mpfr/gmp system libraries. Gated by an explicit option
-# rather than just checking whether external/mpreal exists: having the
-# mpreal.h submodule checked out doesn't mean MPFR/GMP are actually installed
-# and linkable, since the submodule may just be present from a blanket
-# `git submodule update --init --recursive`.
-option(LAZEX_ENABLE_MPREAL "Enable MPFR support: defines the lazex::mpfr target (mpreal.h include dir, mpfr/gmp links). Requires the mpreal submodule and system MPFR/GMP. Does not affect the headers themselves — include lazex/apps/lazex_mpreal.hpp explicitly to use it." OFF)
+# ----------- Core (header-only) ---------------
+
+add_library(lazex INTERFACE)
+add_library(lazex::lazex ALIAS lazex)
+target_include_directories(lazex INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(lazex INTERFACE cxx_std_20)
+
+set(LAZEX_MPFR_RND "MPFR_RNDN" CACHE STRING
+    "Rounding mode used by lazex/apps/lazex_mpreal.hpp. Empty: mpfr::mpreal::get_default_rnd() at runtime.")
+if(LAZEX_MPFR_RND)
+    target_compile_definitions(lazex INTERFACE LAZEX_MPFR_RND=${LAZEX_MPFR_RND})
+endif()
+
+# ----------- Optional MPFR support: lazex::mpfr ---------------
+# mpreal.h is taken from the system, or downloaded if missing (on by default only
+# when building lazex itself, so consumers are never fetched from behind their back).
+
+option(LAZEX_ENABLE_MPREAL "Define lazex::mpfr (mpreal.h + MPFR/GMP)" ${PROJECT_IS_TOP_LEVEL})
+option(LAZEX_FETCH_MPREAL "Download mpreal.h if it is not installed" ${PROJECT_IS_TOP_LEVEL})
 
 if(LAZEX_ENABLE_MPREAL)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/mpreal/mpreal.h)
-        message(FATAL_ERROR "LAZEX_ENABLE_MPREAL requires the 'mpreal' submodule. Run: git submodule update --init --recursive")
+    find_path(MPREAL_INCLUDE_DIR mpreal.h)
+    if(NOT MPREAL_INCLUDE_DIR AND LAZEX_FETCH_MPREAL)
+        include(FetchContent)
+        FetchContent_Declare(mpreal
+            GIT_REPOSITORY https://github.com/advanpix/mpreal.git
+            GIT_TAG        mpfrc++-3.7.2
+            GIT_SHALLOW    TRUE)
+        FetchContent_MakeAvailable(mpreal)
+        set(MPREAL_INCLUDE_DIR ${mpreal_SOURCE_DIR})
     endif()
-
-    add_library(mpreal INTERFACE)
-    target_include_directories(mpreal
-        INTERFACE
-            ${CMAKE_CURRENT_SOURCE_DIR}/external/mpreal
-    )
+    if(NOT MPREAL_INCLUDE_DIR)
+        message(FATAL_ERROR "mpreal.h not found: install it (e.g. libmpfrc++-dev), "
+                            "set MPREAL_INCLUDE_DIR, or enable LAZEX_FETCH_MPREAL")
+    endif()
+    find_library(MPFR_LIBRARY mpfr REQUIRED)
+    find_library(GMP_LIBRARY gmp REQUIRED)
 
     add_library(lazex_mpfr INTERFACE)
     add_library(lazex::mpfr ALIAS lazex_mpfr)
-
-    target_link_libraries(lazex_mpfr
-        INTERFACE
-            lazex
-            mpreal
-            mpfr
-            gmp
-    )
+    target_include_directories(lazex_mpfr SYSTEM INTERFACE ${MPREAL_INCLUDE_DIR})
+    target_link_libraries(lazex_mpfr INTERFACE lazex ${MPFR_LIBRARY} ${GMP_LIBRARY})
 endif()
 
-# ----------- Dev-only targets (example) ---------------
-# Only built when lazex is configured directly (not when pulled in via
-# add_subdirectory/FetchContent by another project), so
-# consumers who only want the interface never build or even see this target.
+# ----------- Example (top-level builds only) ---------------
 
-if((DEFINED PROJECT_IS_TOP_LEVEL AND PROJECT_IS_TOP_LEVEL) OR
-   (NOT DEFINED PROJECT_IS_TOP_LEVEL AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR))
-    set(LAZEX_BUILD_EXAMPLE_DEFAULT ON)
-else()
-    set(LAZEX_BUILD_EXAMPLE_DEFAULT OFF)
-endif()
-option(LAZEX_BUILD_EXAMPLE "Build the lazex example executable" ${LAZEX_BUILD_EXAMPLE_DEFAULT})
+include(CMakeDependentOption)
+cmake_dependent_option(LAZEX_BUILD_EXAMPLE "Build the example (uses mpfr::mpreal)"
+    ${PROJECT_IS_TOP_LEVEL} "LAZEX_ENABLE_MPREAL" OFF)
 
 if(LAZEX_BUILD_EXAMPLE)
-    if(LAZEX_ENABLE_MPREAL)
-        set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-        add_executable(example example.cpp)
-
-        target_link_libraries(example
-            PRIVATE
-                lazex::mpfr
-        )
-
-        target_compile_options(example
-            PRIVATE
-                -O3
-                -DNDEBUG
-        )
-    else()
-        message(STATUS "Skipping the lazex example: it uses mpfr::mpreal, so it needs -DLAZEX_ENABLE_MPREAL=ON")
-    endif()
+    add_executable(example example.cpp)
+    target_link_libraries(example PRIVATE lazex::mpfr)
 endif()

@@ -41,6 +41,11 @@
 #include <mpreal.h>
 #include "../lazex.hpp" // IWYU pragma: keep
 
+#if !defined(MPREAL_VERSION_MAJOR) || \
+    (MPREAL_VERSION_MAJOR * 10000 + MPREAL_VERSION_MINOR * 100 + MPREAL_VERSION_PATCHLEVEL) < 30702
+#error "lazex_mpreal.hpp requires mpreal >= 3.7.2"
+#endif
+
 /// Plug `LazyType<mpfr::mpreal>` into `std::numeric_limits` so that generic
 /// numerical code (e.g. ODE solvers querying `epsilon`) works transparently.
 
