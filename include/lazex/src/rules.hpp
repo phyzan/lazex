@@ -42,7 +42,7 @@ struct NodalEvaluator{
 private:
 
     LAZEX_FORCE_INLINE
-    static constexpr void sorted_evaluator(T& out, Pool<T> worker){}
+    static constexpr void sorted_evaluator(T& /*out*/, Pool<T> /*worker*/){}
 
     template<typename F, typename... Rest>
     LAZEX_FORCE_INLINE
