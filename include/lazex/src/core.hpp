@@ -48,7 +48,7 @@ struct Atom : public Expr<Derived, T>{
     static constexpr size_t MAX_DEPTH = 0;
     static constexpr size_t REQUIRED_TEMPORARIES = 0;
 
-    LAZEX_FORCE_INLINE constexpr bool contains_lazy_ref(const T& ref) const {
+    LAZEX_FORCE_INLINE constexpr bool contains_lazy_ref(const T& /*ref*/) const {
         // Derived classes might override this
         return false;
     }
