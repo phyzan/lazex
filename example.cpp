@@ -47,8 +47,7 @@ int main(){
     std::cout << "Value with mpreal:            " << res << std::endl; 
     std::cout << "Value with LazyType        :  " << res2 << std::endl;
     std::cout << "Speedup:                      " << (double(time_T) / (double)time_CT) << "x" << std::endl;
-
-    // g++ -O3 -std=c++20 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude example.cpp -o test -lmpfr -lgmp
-    // test with clang++
-
 }
+
+// Build and run from the repository root (g++ or clang++; add -I<dir> if mpreal.h is not in a default include path):
+//   g++ -std=c++20 -O3 -DNDEBUG -DLAZEX_MPFR_RND=MPFR_RNDN -Iinclude example.cpp -o example -lmpfr -lgmp && ./example
