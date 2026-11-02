@@ -13,7 +13,8 @@
     using std::abs, std::pow, std::sqrt, std::exp,      \
           std::log, std::log10, std::sin, std::cos,     \
           std::tan, std::asin, std::acos, std::atan,    \
-          std::sinh, std::cosh, std::tanh, std::erf
+          std::atan2, std::sinh, std::cosh, std::tanh,  \
+          std::erf
 
 #define LAZEX_USING_MATH  \
     LAZEX_USING_STD_MATH; \

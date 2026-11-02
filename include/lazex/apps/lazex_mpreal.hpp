@@ -13,7 +13,7 @@
  * - `LAZEX_SPECIALIZE_FUNCTIONS(mpfr::mpreal)` — type-specific `evaluate` overloads for
  *   `NEG`, `ABS`, and `SQRT` using the raw MPFR C API for maximum performance.
  * - `LAZEX_SPECIALIZE_OPERATIONS(mpfr::mpreal)` — type-specific `evaluate` overloads for
- *   `+`, `-`, `*`, `/`, `pow`, `max`, `min` covering all combinations of
+ *   `+`, `-`, `*`, `/`, `pow`, `atan2`, `max`, `min` covering all combinations of
  *   `mpfr::mpreal` with `double`, `int`, `float`, `long`, and `size_t`.
  * - Fused-arithmetic `LAZEX_OVERRIDE_OPER` specialisations that intercept structural
  *   patterns (e.g. `a + b*c`) and replace them with a single MPFR fused call
@@ -200,7 +200,7 @@ LAZEX_SPECIALIZE_FUNCTIONS(mpfr::mpreal){
  *
  * Overrides `CustomBinaryEvaluator<mpfr::mpreal>::evaluate` for all combinations of
  * `mpfr::mpreal` with `double`, `int`, `float`, `long`, and `size_t` for the
- * operations `+`, `-`, `*`, `/`, `pow`, `max`, and `min`.
+ * operations `+`, `-`, `*`, `/`, `pow`, `atan2`, `max`, and `min`.
  *
  * Each overload uses the most efficient MPFR C function for the given operand types
  * (e.g. `mpfr_add_d` when one operand is `double`, `mpfr_add_si` for `int`/`long`).
@@ -516,6 +516,78 @@ LAZEX_SPECIALIZE_OPERATIONS(mpfr::mpreal){
         T& worker = workers.consume();
         mpfr_set_ui(worker.mpfr_ptr(), a, LAZEX_MPFR_RND);
         mpfr_pow(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // atan2: MPFR has no variant taking a plain scalar, so a scalar operand is set into a worker first
+
+    // mpreal with mpreal
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> /**/, const T &a, const T &b){
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // mpreal with double
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const T &a, const double &b){
+        T& worker = workers.consume();
+        mpfr_set_d(worker.mpfr_ptr(), b, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), worker.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const double &a, const T &b){
+        T& worker = workers.consume();
+        mpfr_set_d(worker.mpfr_ptr(), a, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // mpreal with int
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const T &a, const int &b){
+        T& worker = workers.consume();
+        mpfr_set_si(worker.mpfr_ptr(), b, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), worker.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const int &a, const T &b){
+        T& worker = workers.consume();
+        mpfr_set_si(worker.mpfr_ptr(), a, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // mpreal with float
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const T &a, const float &b){
+        T& worker = workers.consume();
+        mpfr_set_d(worker.mpfr_ptr(), static_cast<double>(b), LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), worker.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const float &a, const T &b){
+        T& worker = workers.consume();
+        mpfr_set_d(worker.mpfr_ptr(), static_cast<double>(a), LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // mpreal with long
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const T &a, const long &b){
+        T& worker = workers.consume();
+        mpfr_set_si(worker.mpfr_ptr(), b, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), worker.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const long &a, const T &b){
+        T& worker = workers.consume();
+        mpfr_set_si(worker.mpfr_ptr(), a, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    // mpreal with size_t
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const T &a, const size_t &b){
+        T& worker = workers.consume();
+        mpfr_set_ui(worker.mpfr_ptr(), b, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), a.mpfr_srcptr(), worker.mpfr_srcptr(), LAZEX_MPFR_RND);
+    }
+
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::ATAN2, T &out, Pool<T> workers, const size_t &a, const T &b){
+        T& worker = workers.consume();
+        mpfr_set_ui(worker.mpfr_ptr(), a, LAZEX_MPFR_RND);
+        mpfr_atan2(out.mpfr_ptr(), worker.mpfr_srcptr(), b.mpfr_srcptr(), LAZEX_MPFR_RND);
     }
 
     // min

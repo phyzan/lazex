@@ -118,6 +118,20 @@ struct Pow : public BinaryOperator<Pow<T, L, R>, T, L, R>, public CustomBinaryEv
 };
 
 /**
+ * @brief Expression node for the two-argument arctangent: computes `atan2(lhs, rhs)`.
+ * @tparam T   The arithmetic value type.
+ * @tparam L   `y` sub-expression type.
+ * @tparam R   `x` sub-expression type.
+ */
+template<typename T, typename L, typename R>
+struct Atan2 : public BinaryOperator<Atan2<T, L, R>, T, L, R>, public CustomBinaryEvaluator<T>{
+    using Base = BinaryOperator<Atan2<T, L, R>, T, L, R>;
+    using tag = lazex::tags::ATAN2;
+    using Base::Base;
+
+};
+
+/**
  * @brief Expression node for element-wise maximum: computes `max(lhs, rhs)`.
  *
  * Named `MaxLazy` to avoid ambiguity with `std::max` and any user-defined `max`
@@ -232,6 +246,19 @@ LAZEX_FORCE_INLINE auto make_pow(L&& lhs, R&& rhs){
     return Pow<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
 }
 
+/**
+ * @brief Build an `Atan2<T,L,R>` node from the `y` and `x` of `atan2(y, x)`.
+ * @tparam T    The arithmetic value type.
+ * @tparam L    `y` operand type.
+ * @tparam R    `x` operand type.
+ */
+template<typename T, typename L, typename R>
+LAZEX_FORCE_INLINE auto make_atan2(L&& lhs, R&& rhs){
+    auto lhs_expr = make_expr<T>(std::forward<L>(lhs));
+    auto rhs_expr = make_expr<T>(std::forward<R>(rhs));
+    return Atan2<T, std::decay_t<decltype(lhs_expr)>, std::decay_t<decltype(rhs_expr)>>(std::move(lhs_expr), std::move(rhs_expr));
+}
+
 //===================================== operator overloads=========================
 //
 // All arithmetic and relational operators are constrained with LAZEX_REQUIREMENT so
@@ -273,6 +300,13 @@ LAZEX_FORCE_INLINE auto pow(Base&& base, Exp&& exp){
     return make_pow<detail::value_typeOf<Base, Exp>>(std::forward<Base>(base), std::forward<Exp>(exp));
 }
 
+/// @brief Lazy two-argument arctangent: returns `Atan2<T,Y,X>` when at least one operand is an expression.
+template<typename Y, typename X>
+requires LAZEX_REQUIREMENT(Y, X)
+LAZEX_FORCE_INLINE auto atan2(Y&& y, X&& x){
+    return make_atan2<detail::value_typeOf<Y, X>>(std::forward<Y>(y), std::forward<X>(x));
+}
+
 /**
  * @brief Lazy maximum: returns a `MaxLazy<T,L,R>` node.
  *
@@ -311,8 +345,9 @@ using lazex::detail::operator+,
       lazex::detail::operator-, 
       lazex::detail::operator*, 
       lazex::detail::operator/, 
-      lazex::detail::pow, 
-      lazex::detail::min, 
+      lazex::detail::pow,
+      lazex::detail::atan2,
+      lazex::detail::min,
       lazex::detail::max;
 
 } // namespace lazex::detail
