@@ -68,6 +68,8 @@ struct MUL : public Tag{};
 struct DIV : public Tag{};
 /// @brief Tag for exponentiation `pow`.
 struct POW : public Tag{};
+/// @brief Tag for `atan2(y,x)`.
+struct ATAN2 : public Tag{};
 /// @brief Tag for `max(x,y)`.
 struct MAX : public Tag{};
 /// @brief Tag for `min(x,y)`.
@@ -84,6 +86,7 @@ template<typename T, typename L, typename R> struct Sub;
 template<typename T, typename L, typename R> struct Mul;
 template<typename T, typename L, typename R> struct Div;
 template<typename T, typename L, typename R> struct Pow;
+template<typename T, typename L, typename R> struct Atan2;
 template<typename T, typename L, typename R> struct MaxLazy;
 template<typename T, typename L, typename R> struct MinLazy;
 
@@ -117,6 +120,11 @@ struct TypeGetter<T, lazex::tags::DIV, L, R>{
 template<typename T, typename L, typename R>
 struct TypeGetter<T, lazex::tags::POW, L, R>{
     using type = lazex::detail::Pow<T, L, R>;
+};
+
+template<typename T, typename L, typename R>
+struct TypeGetter<T, lazex::tags::ATAN2, L, R>{
+    using type = lazex::detail::Atan2<T, L, R>;
 };
 
 template<typename T, typename L, typename R>
@@ -154,6 +162,9 @@ concept isDiv = requires { requires isBinOp<Derived, T>; } && std::is_base_of_v<
 
 template<typename Derived, typename T>
 concept isPow = requires { requires isBinOp<Derived, T>; } && std::is_base_of_v<lazex::detail::Pow<T, typename Derived::LhsType, typename Derived::RhsType>, Derived>;
+
+template<typename Derived, typename T>
+concept isAtan2 = requires { requires isBinOp<Derived, T>; } && std::is_base_of_v<lazex::detail::Atan2<T, typename Derived::LhsType, typename Derived::RhsType>, Derived>;
 
 template<typename Derived, typename T>
 concept isMin = requires { requires isBinOp<Derived, T>; } && std::is_base_of_v<lazex::detail::MinLazy<T, typename Derived::LhsType, typename Derived::RhsType>, Derived>;

@@ -317,7 +317,7 @@ struct CustomBinaryEvaluator<MyType>
         make_addition(out, a, b);
     }
 
-    // Define all other operations (PLUS, MUL, DIV, MINUS, POW, MIN, MAX)
+    // Define all other operations (PLUS, MUL, DIV, MINUS, POW, ATAN2, MIN, MAX)
 };
 ```
 
