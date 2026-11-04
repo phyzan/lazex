@@ -191,6 +191,12 @@ LAZEX_SPECIALIZE_FUNCTIONS(mpfr::mpreal){
         mpfr_erf(out.mpfr_ptr(), a.mpfr_srcptr(), LAZEX_MPFR_RND);
     }
 
+    // power<P>
+    template<int P>
+    LAZEX_FORCE_INLINE static void evaluate(lazex::tags::INTEGRAL_POWER<P>, T &out, Pool<T> /**/, const T &a){
+        mpfr_pow_si(out.mpfr_ptr(), a.mpfr_srcptr(), P, LAZEX_MPFR_RND);
+    }
+
 };
 
 

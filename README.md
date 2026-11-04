@@ -153,6 +153,8 @@ T f(const T& x){
 }
 ```
 
+`lazex::power<P>(x)` is an integer power whose exponent `P`, possibly negative, is fixed at compile time. On a lazy expression it evaluates `x` only once, unlike `x*x`. Being lazex's own name rather than a standard one, it is not part of `LAZEX_USING_MATH` and is always called qualified, like `lazex::constants<T>`. A type with custom kernels provides it through `lazex::tags::INTEGRAL_POWER<P>`.
+
 ---
 
 
