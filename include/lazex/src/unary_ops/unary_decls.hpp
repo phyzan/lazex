@@ -118,6 +118,9 @@ struct COSH : public Tag{};
 struct TANH : public Tag{};
 /// @brief Tag for `erf(x)`.
 struct ERF : public Tag{};
+/// @brief Tag for `power<P>(x)`, whose integer exponent is fixed at compile time (`POW` takes it at runtime).
+template<int P>
+struct INTEGRAL_POWER : public Tag{};
 
 } // namespace lazex::tags
 
@@ -170,6 +173,8 @@ template<typename T, typename Arg>
 struct Tanh;
 template<typename T, typename Arg>
 struct Erf;
+template<int P, typename T, typename Arg>
+struct IntegralPower;
 
 
 
@@ -283,6 +288,11 @@ struct TypeGetter<T, lazex::tags::TANH, Arg>{
 template<typename T, typename Arg>
 struct TypeGetter<T, lazex::tags::ERF, Arg>{
     using type = lazex::detail::Erf<T, Arg>;
+};
+
+template<typename T, int P, typename Arg>
+struct TypeGetter<T, lazex::tags::INTEGRAL_POWER<P>, Arg>{
+    using type = lazex::detail::IntegralPower<P, T, Arg>;
 };
 
     

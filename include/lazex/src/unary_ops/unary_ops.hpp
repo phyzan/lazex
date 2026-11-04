@@ -84,6 +84,41 @@ LAZEX_DEFINE_UNARY_OP(cosh, Cosh, lazex::tags::COSH)
 LAZEX_DEFINE_UNARY_OP(tanh, Tanh, lazex::tags::TANH)
 LAZEX_DEFINE_UNARY_OP(erf, Erf, lazex::tags::ERF)
 
+
+/**
+ * @brief Expression node for `power<P>(arg)`, an integer power with the exponent fixed at compile time.
+ *
+ * Unlike the product `arg*arg*...`, it evaluates `arg` only once, and `CustomUnaryEvaluator<T>::evaluate`
+ * then raises the result to `P`. As for every unary operation, `out` may alias the argument there.
+ *
+ * @tparam P   The exponent, which may be negative.
+ * @tparam T   The arithmetic value type.
+ * @tparam Arg The sub-expression type.
+ */
+template<int P, typename T, typename Arg>
+struct IntegralPower : public Unary<IntegralPower<P, T, Arg>, T, Arg>, public CustomUnaryEvaluator<T>{
+    using Base = Unary<IntegralPower<P, T, Arg>, T, Arg>;
+    using tag = lazex::tags::INTEGRAL_POWER<P>;
+    using Base::Base;
+};
+
+/// @brief Lazy `IntegralPower<P,T,Arg>` node. `power<1>(arg)` is `arg` itself, which needs no evaluation of its own.
+template<int P, typename U>
+requires (
+    requires { typename std::decay_t<U>::lazy_value_type; } &&
+    traits::isLazyExpr<std::decay_t<U>, typename std::decay_t<U>::lazy_value_type>
+)
+LAZEX_FORCE_INLINE decltype(auto) power(U&& arg) {
+    static_assert(P != 0, "Integer power must be non-zero");
+    if constexpr (P == 1) {
+        return std::forward<U>(arg);
+    } else {
+        using T = detail::lazy_value_type<U>;
+        auto arg_expr = make_expr<T>(std::forward<U>(arg));
+        return IntegralPower<P, T, std::decay_t<decltype(arg_expr)>>(std::move(arg_expr));
+    }
+}
+
 template<typename F>
 requires lazex::traits::isNode<F, typename std::decay_t<F>::lazy_value_type>
 std::ostream& operator<<(std::ostream& os, const F& expr){
@@ -127,7 +162,8 @@ using lazex::detail::abs,
       lazex::detail::sinh,
       lazex::detail::cosh,
       lazex::detail::tanh,
-      lazex::detail::erf;
+      lazex::detail::erf,
+      lazex::detail::power;
 
 } // namespace lazex
 
