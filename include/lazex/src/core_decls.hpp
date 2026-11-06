@@ -95,25 +95,6 @@ template<typename E>
 using lazy_value_type = value_typeTrait<E>::Type;
 
 
-/**
- * @brief Derives the common `lazy_value_type` from a pair of operand types.
- *
- * Rules:
- * - If both `A` and `B` expose a `lazy_value_type` and they are the same, the result is that type.
- * - If only one side has a `lazy_value_type` (the other is `void`, e.g. a raw scalar), that
- *   side's `lazy_value_type` is used.
- * - It is ill-formed for **both** to have `void` `lazy_value_type` (neither would be an expression).
- *
- * @tparam A Left operand type.
- * @tparam B Right operand type.
- */
-template<typename A, typename B>
-requires ((std::is_same_v<lazy_value_type<A>, lazy_value_type<B>> || std::is_same_v<lazy_value_type<A>, void> || std::is_same_v<lazy_value_type<B>, void>) && !(std::is_same_v<lazy_value_type<A>, void> && std::is_same_v<lazy_value_type<B>, void>))
-using value_typeOf = std::conditional_t<std::is_same_v<lazy_value_type<A>, void>, lazy_value_type<B>, lazy_value_type<A>>;
-
-
-
-
 template<typename T> struct ExprBase;
 template<typename Derived, typename T> struct Expr;
 template<typename Derived, typename T> struct Atom;
@@ -239,6 +220,39 @@ template<typename F>
 concept isAnyLazyExpr = requires { typename std::decay_t<F>::lazy_value_type; } && isLazyExpr<std::decay_t<F>, typename std::decay_t<F>::lazy_value_type>;
 
 } // namespace lazex::traits
+
+
+namespace lazex::detail {
+
+/**
+ * @brief True when `B` has a value type and `A` is a valid scalar of it, even if `A` is a lazy
+ *        expression with a value type of its own, like a `LazyType<T>` in an expression of
+ *        `Dual<T>`, whose evaluator takes `T` as a scalar.
+ */
+template<typename A, typename B>
+inline constexpr bool isScalarFor = !std::is_void_v<lazy_value_type<B>> && lazex::traits::isValidScalar<A, lazy_value_type<B>>;
+
+
+/**
+ * @brief Derives the common `lazy_value_type` from a pair of operand types.
+ *
+ * Rules:
+ * - If both `A` and `B` expose a `lazy_value_type` and they are the same, the result is that type.
+ * - If only one side has a `lazy_value_type` (the other is `void`, e.g. a raw scalar), that
+ *   side's `lazy_value_type` is used.
+ * - If they differ and one side is a valid scalar of the other's value type (see `isScalarFor`),
+ *   the other side's `lazy_value_type` is used, and that operand is stored in an `OtherType`.
+ * - It is ill-formed for **both** to have `void` `lazy_value_type` (neither would be an expression).
+ *
+ * @tparam A Left operand type.
+ * @tparam B Right operand type.
+ */
+template<typename A, typename B>
+requires ((std::is_same_v<lazy_value_type<A>, lazy_value_type<B>> || std::is_same_v<lazy_value_type<A>, void> || std::is_same_v<lazy_value_type<B>, void> || isScalarFor<A, B> || isScalarFor<B, A>) && !(std::is_same_v<lazy_value_type<A>, void> && std::is_same_v<lazy_value_type<B>, void>))
+using value_typeOf = std::conditional_t<std::is_same_v<lazy_value_type<A>, void> || isScalarFor<A, B>, lazy_value_type<B>, lazy_value_type<A>>;
+
+} // namespace lazex::detail
+
 
 
 namespace lazex{
