@@ -101,7 +101,7 @@ private:
     LAZEX_FORCE_INLINE static void eval_rule_impl(std::index_sequence<I...>, tag, T& out, Pool<T> workers, const Branch&... branch){
         // IMPORTANT: out must NOT be the same memory location as at least one of the branches: if `out` is contained as a RefType in one of the branches, it will lead to invalid results. The user must ensure that `out` is a separate memory location.
         static_assert(((not lazex::traits::isLazy<Branch, T>) && ...), "LazyType should not be passed to eval_rule, use RefType instead");
-        using node_t = lazex::detail::TypeGetter<T, tag, Branch...>::type;
+        using node_t = typename lazex::detail::TypeGetter<T, tag, Branch...>::type;
         static_assert(not std::is_void_v<node_t>, "Invalid node type");
 
         constexpr auto sorted_idx = node_t::sort_branches_by_required_workers();

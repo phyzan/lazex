@@ -56,7 +56,7 @@
 LAZEX_DECLARE_NUMERIC_TYPE(mpfr::mpreal);
 
 template<>
-inline constexpr size_t lazex::required_workers<mpfr::mpreal> = 1;
+inline constexpr size_t lazex::detail::required_workers<mpfr::mpreal> = 1;
 
 namespace lazex::detail {
 
